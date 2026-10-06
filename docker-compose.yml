@@ -1,0 +1,77 @@
+# One command: docker compose up --build
+# Then open http://localhost:3000 and use "Explore the demo account".
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-finpilot}
+      POSTGRES_USER: ${DB_USER:-finpilot}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-finpilot}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-finpilot}"]
+      interval: 3s
+      retries: 20
+
+  backend-python:
+    build:
+      context: .
+      dockerfile: backend-python/Dockerfile
+    environment:
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-key}
+      JAVA_API_URL: http://backend-java:8080
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-claude-opus-5-5}
+      AGENT_MODE: ${AGENT_MODE:-auto}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      retries: 30
+
+  backend-java:
+    build: ./backend-java
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-finpilot}
+      DB_USER: ${DB_USER:-finpilot}
+      DB_PASSWORD: ${DB_PASSWORD:-finpilot}
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-string-of-at-least-32-bytes}
+      ML_SERVICE_URL: http://backend-python:8000
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-key}
+      TZ: ${TZ:-Asia/Kolkata}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend-python:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8080/health || exit 1"]
+      interval: 5s
+      retries: 40
+
+  # One-shot: loads the synthetic demo user, then exits.
+  seed:
+    build:
+      context: .
+      dockerfile: backend-python/Dockerfile
+    command: ["python", "/srv/infra/seed/load.py"]
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-finpilot}:${DB_PASSWORD:-finpilot}@postgres:5432/${DB_NAME:-finpilot}
+      JAVA_API_URL: http://backend-java:8080
+      TZ: ${TZ:-Asia/Kolkata}
+    depends_on:
+      backend-java:
+        condition: service_healthy
+    restart: "no"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend-java
+
+volumes:
+  pgdata:
