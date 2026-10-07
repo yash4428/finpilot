@@ -76,7 +76,7 @@ export default function Runway({ sts }) {
             </div>
           )}
         </div>
-        <div className="strip-scale"><span>Balance {inr(total)}</span><span>Month end {inr(left)}</span></div>
+        <div className="strip-scale"><span>Balance {inr(sts.balance)}</span><span>Month end {inr(left)}</span></div>
         <div className="legend" aria-hidden>
           <span><i style={{ background: 'repeating-linear-gradient(135deg,#2B5257 0 3px,#3a6a70 3px 6px)' }} />Bills & EMIs</span>
           <span><i style={{ background: '#2F6166' }} />Recurring</span>

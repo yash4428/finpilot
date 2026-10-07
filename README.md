@@ -30,7 +30,17 @@ The `seed` service loads three months of synthetic data and runs it through the 
 Set `ANTHROPIC_API_KEY` in `.env` to have Pilot write answers with an LLM. Without it, Pilot uses its
 deterministic planner: same tools, same numbers, same checks, templated prose.
 
-## Run locally without Docker
+## Run locally with one command
+
+Needs PostgreSQL running (`brew services start postgresql@16`), Java 17+, Maven, Python 3.11+ and Node 20+.
+
+```bash
+./run.sh --seed
+```
+
+Open http://localhost:5173. Drop `--seed` on later runs to keep your data. Ctrl-C stops everything; logs are in `.logs/`.
+
+## Run locally without Docker (manual)
 
 Needs Java 17+, Maven, Python 3.11+, Node 20+ and PostgreSQL 16.
 

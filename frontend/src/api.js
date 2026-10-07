@@ -15,18 +15,29 @@ async function request(method, path, body, isForm = false) {
   const headers = {}
   if (token) headers.Authorization = `Bearer ${token}`
   if (body && !isForm) headers['Content-Type'] = 'application/json'
+  // Never hang forever: the agent can take a while, everything else should be quick.
+  const ctl = new AbortController()
+  const timer = setTimeout(() => ctl.abort(), path.startsWith('/agent/chat') ? 130000 : 20000)
   let res
   try {
-    res = await fetch(BASE + path, { method, headers, body: isForm ? body : body ? JSON.stringify(body) : undefined })
+    res = await fetch(BASE + path, { method, headers, signal: ctl.signal, body: isForm ? body : body ? JSON.stringify(body) : undefined })
   } catch {
-    throw new Error("Can't reach FinPilot's server. Check that the backend is running.")
+    throw new Error("Can't reach FinPilot's server. Check that the Java backend is running on port 8080.")
+  } finally {
+    clearTimeout(timer)
+  }
+  if (res.status >= 502 && res.status <= 504) {
+    throw new Error("Can't reach FinPilot's server. Check that the Java backend is running on port 8080.")
   }
   if (res.status === 401 && !path.startsWith('/auth')) {
     onUnauthorized()
     throw new Error('Your session expired. Sign in again.')
   }
   const text = await res.text()
-  const data = text ? JSON.parse(text) : null
+  let data = null
+  try { data = text ? JSON.parse(text) : null } catch {
+    throw new Error(res.ok ? 'Unexpected response from the server. Is /api pointing at the Java backend?' : `Server error (${res.status}). Check that the Java backend is running on port 8080.`)
+  }
   if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`)
   return data
 }
