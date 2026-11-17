@@ -120,7 +120,8 @@ def generate_transactions(cards: dict, bank: int, wallet: int) -> list[dict]:
         day += timedelta(days=1)
 
     # Planted anomalies.
-    add(d(-9), "CROMA ELECTRONICS KORAMANGALA", -58999, "Shopping", card=hdfc, desc="POS purchase")
+    # The big one-off sits in last month so this month's totals and budgets stay realistic.
+    add(month_day(-1, 20), "CROMA ELECTRONICS KORAMANGALA", -58999, "Shopping", card=hdfc, desc="POS purchase")
     dup_day = d(-2)
     add(dup_day, "Swiggy", -1248, "Dining", card=hdfc, desc="Order #SW-88213")
     add(dup_day, "Swiggy", -1248, "Dining", card=hdfc, desc="Order #SW-88213")
@@ -208,8 +209,10 @@ def main() -> None:
                 [(uid, t["account_id"], t["card_id"], t["amount"], t["date"], t["merchant"], t["description"],
                   cats.get(t["category"]) if t["category"] else None, False) for t in txns])
 
-        for cat, limit in [("Groceries", 9000), ("Dining", 7500), ("Transport", 4500), ("Shopping", 6000),
-                           ("Entertainment", 2000), ("Subscriptions", 1500), ("Health", 3000)]:
+        # Limits sit near the generator's typical monthly spend, so a demo shows a mix of
+        # on-track, close-to-limit and over (Subscriptions, after the planted overseas charge).
+        for cat, limit in [("Groceries", 13000), ("Dining", 14000), ("Transport", 5000), ("Shopping", 7000),
+                           ("Entertainment", 2500), ("Subscriptions", 1500), ("Health", 3500)]:
             conn.execute("insert into budgets (user_id, category_id, limit_amount, period) values (%s,%s,%s,'monthly')",
                          (uid, cats[cat], limit))
 

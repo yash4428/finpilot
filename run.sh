@@ -54,11 +54,14 @@ fi
 
 # React frontend
 [ -d frontend/node_modules ] || { say "Installing frontend packages (first run only)"; (cd frontend && npm install --no-audit --no-fund); }
-say "Starting web app on :5173"
-(cd frontend && npm run dev -- --port 5173 --strictPort > "$ROOT/.logs/web.log" 2>&1) &
+# Use 5173 unless another app (e.g. a different Vite project) already has it.
+WEB_PORT=${WEB_PORT:-5173}
+while lsof -nP -iTCP:"$WEB_PORT" -sTCP:LISTEN >/dev/null 2>&1; do WEB_PORT=$((WEB_PORT + 1)); done
+say "Starting web app on :$WEB_PORT"
+(cd frontend && npm run dev -- --port "$WEB_PORT" --strictPort > "$ROOT/.logs/web.log" 2>&1) &
 PIDS+=($!)
-wait_for http://localhost:5173 web 60
+wait_for "http://localhost:$WEB_PORT" web 60
 
-say "FinPilot is running → http://localhost:5173   (demo: demo@finpilot.app / demo1234)"
+say "FinPilot is running → http://localhost:$WEB_PORT   (demo: demo@finpilot.app / demo1234)"
 say "Press Ctrl-C to stop."
 wait
