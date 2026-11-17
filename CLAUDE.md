@@ -39,7 +39,7 @@ Python FastAPI    →  LLM API (reasoning)  ← ML models, agent loop, RAG
 | Frontend | React (web) + a charting lib (Recharts or Chart.js) |
 | Core backend | Java 17, Spring Boot, Spring Security (JWT), Spring Data JPA |
 | ML/Agent service | Python 3.11+, FastAPI, scikit-learn, LangChain **or** LlamaIndex |
-| LLM | Hosted LLM API (used as-is — NO fine-tuning, NO pretraining) |
+| LLM | Hosted LLM API (used as-is — NO fine-tuning, NO pretraining). Google Gemini by default; Anthropic Claude supported |
 | Vector store | FAISS (local, default) or Chroma |
 | Database | PostgreSQL |
 | Scheduling | Spring `@Scheduled` (cron). **NO Redis.** |

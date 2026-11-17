@@ -21,8 +21,12 @@ services:
     environment:
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-key}
       JAVA_API_URL: http://backend-java:8080
+      LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}
+      LLM_FALLBACK_MODELS: ${LLM_FALLBACK_MODELS:-gemini-3-flash-preview,gemini-flash-lite-latest}
+      LLM_TIMEOUT: ${LLM_TIMEOUT:-15}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      LLM_MODEL: ${LLM_MODEL:-claude-opus-5-5}
       AGENT_MODE: ${AGENT_MODE:-auto}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"]

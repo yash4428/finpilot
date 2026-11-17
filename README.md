@@ -10,7 +10,7 @@ React (frontend :3000 / :5173)
 Java Spring Boot :8080  ⇄  PostgreSQL        system of record, auth, dues engine, tax rules, @Scheduled reminders
    │  internal REST (X-Internal-Key)
    ▼
-Python FastAPI :8000  →  LLM API (optional)   categorizer, forecaster, anomaly detector, agent loop, RAG (FAISS)
+Python FastAPI :8000  →  Gemini API (optional)   categorizer, forecaster, anomaly detector, agent loop, RAG (FAISS)
    └── agent tools call back into the Java API with the user's own JWT
 ```
 
@@ -27,8 +27,9 @@ docker compose up --build
 Open http://localhost:3000 and press **Explore the demo account** (`demo@finpilot.app` / `demo1234`).
 The `seed` service loads three months of synthetic data and runs it through the real ML pipeline.
 
-Set `ANTHROPIC_API_KEY` in `.env` to have Pilot write answers with an LLM. Without it, Pilot uses its
-deterministic planner: same tools, same numbers, same checks, templated prose.
+Set `GEMINI_API_KEY` in `.env` (Google Gemini, the default; get a key at aistudio.google.com) to have Pilot write
+answers with an LLM. Anthropic Claude also works (`LLM_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`). Without a key, or
+when the model is overloaded, Pilot uses its deterministic planner: same tools, same numbers, same checks.
 
 ## Run locally with one command
 

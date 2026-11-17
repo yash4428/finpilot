@@ -14,8 +14,9 @@ Internal service called only by the Java backend (header `X-Internal-Key`).
 Seven fixed tools, each an HTTP call back into the Java API with the user's JWT: `get_transactions`, `get_dues`,
 `get_budget`, `forecast_balance`, `compute_payoff`, `estimate_tax`, `search_knowledge`.
 
-* With `ANTHROPIC_API_KEY` set, a hosted Claude model (`LLM_MODEL`, default `claude-opus-5-5`) plans tool calls and
-  writes the answer. It is used as-is: no fine-tuning, no pretraining.
+* With `GEMINI_API_KEY` set, a hosted Gemini model (`LLM_MODEL`, default `gemini-3.5-flash-lite`) plans tool calls and
+  writes the answer; overloaded models fail over to `LLM_FALLBACK_MODELS`. Claude works too (`LLM_PROVIDER=anthropic`).
+  Models are used as-is: no fine-tuning, no pretraining.
 * Without a key (or `AGENT_MODE=offline`), a deterministic planner routes the question and fills templates from
   the same tool results.
 * `grounding.py` verifies every figure in the answer against tool outputs; `redact.py` strips PII from anything
@@ -37,7 +38,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/uvicorn app.main:app --port 8000
 ```
 
-Environment variables: `INTERNAL_API_KEY`, `JAVA_API_URL`, `ANTHROPIC_API_KEY`, `LLM_MODEL`, `AGENT_MODE`,
+Environment variables: `INTERNAL_API_KEY`, `JAVA_API_URL`, `LLM_PROVIDER`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
+`LLM_MODEL`, `LLM_FALLBACK_MODELS`, `LLM_TIMEOUT`, `AGENT_MODE`,
 `KNOWLEDGE_DIR`, `INDEX_DIR`.
 
 ## Test
