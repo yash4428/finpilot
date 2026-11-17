@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { CreditCard, Pencil, Plus, Trash2, Wifi, Landmark } from 'lucide-react'
+import { CreditCard, Pencil, Plus, Trash2, Wifi, Landmark, Wallet, Building2 } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../api.js'
 import { useShell } from '../components/Layout.jsx'
@@ -14,6 +14,8 @@ const issuerClass = (i = '') => {
 export default function CardsLoans() {
   const cards = useApi('/cards')
   const loans = useApi('/loans')
+  const accounts = useApi('/accounts')
+  const [acctForm, setAcctForm] = useState(null)
   const [cardForm, setCardForm] = useState(null)
   const [loanForm, setLoanForm] = useState(null)
   const { refreshShell } = useShell()
@@ -29,6 +31,28 @@ export default function CardsLoans() {
 
   return (
     <motion.div className="stack" style={{ gap: 28 }} variants={page} initial="initial" animate="animate" exit="exit">
+      <section>
+        <div className="row" style={{ marginBottom: 14 }}>
+          <div>
+            <h2 style={{ margin: 0, fontFamily: 'var(--f-display)', fontWeight: 600, fontSize: 19, letterSpacing: '-0.02em' }}>Bank accounts & wallets</h2>
+            {accounts.data?.length > 0 && <div className="muted" style={{ fontSize: 13 }}>{inr(accounts.data.reduce((a, x) => a + x.balance, 0))} across {accounts.data.length} accounts</div>}
+          </div>
+          <button className="btn" style={{ marginLeft: 'auto' }} onClick={() => setAcctForm({})}><Plus size={16} /> Add account</button>
+        </div>
+        <div className="grid">
+          {(accounts.data || []).map((a) => (
+            <motion.div className="card c-4 md-6" key={a.id} variants={rise}>
+              <div className="row">
+                <span className="merchant-badge" style={{ background: 'var(--brand-soft)', color: 'var(--brand-ink)' }}>{a.type === 'wallet' ? <Wallet size={17} /> : <Building2 size={17} />}</span>
+                <div style={{ flex: 1 }}><div style={{ fontWeight: 600 }}>{a.name}</div><div className="faint" style={{ fontSize: 12, textTransform: 'capitalize' }}>{a.type}</div></div>
+                <button className="icon-btn" style={{ width: 30, height: 30 }} onClick={() => setAcctForm(a)} aria-label={`Edit ${a.name}`}><Pencil size={14} /></button>
+              </div>
+              <div className="stat-value num" style={{ fontSize: 26 }}>{inr(a.balance)}</div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       <section>
         <div className="row" style={{ marginBottom: 14 }}>
           <div>
@@ -111,6 +135,7 @@ export default function CardsLoans() {
         </div>
       </section>
 
+      <AccountForm item={acctForm} onClose={() => setAcctForm(null)} onSaved={() => { accounts.reload(); refreshShell(); toast('Account saved') }} />
       <CardForm item={cardForm} onClose={() => setCardForm(null)} onSaved={() => { cards.reload(); refreshShell(); toast('Card saved. Its bill is now in your dues.') }} />
       <LoanForm item={loanForm} onClose={() => setLoanForm(null)} onSaved={() => { loans.reload(); refreshShell(); toast('Loan saved. Next EMI added to your dues.') }} />
     </motion.div>
@@ -198,6 +223,33 @@ function LoanForm({ item, onClose, onSaved }) {
             <div style={{ fontFamily: 'var(--f-display)', fontWeight: 600, fontSize: 20 }} className="num">{preview ? inr(preview) : '—'}</div>
           </div>
         </div>
+        {err && <div className="full error-text" role="alert">{err}</div>}
+      </form>
+    </Modal>
+  )
+}
+
+function AccountForm({ item, onClose, onSaved }) {
+  const editing = item?.id
+  const [f, setF] = useState({})
+  const [err, setErr] = useState('')
+  const v = { name: '', type: 'bank', balance: '', ...item, ...f }
+  const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }))
+  const close = () => { setF({}); setErr(''); onClose() }
+  async function save(e) {
+    e.preventDefault()
+    const body = { name: v.name, type: v.type, balance: Number(v.balance) || 0 }
+    try { editing ? await api.put(`/accounts/${item.id}`, body) : await api.post('/accounts', body); onSaved(); close() } catch (e2) { setErr(e2.message) }
+  }
+  return (
+    <Modal open={!!item} onClose={close} title={editing ? `Update ${item.name}` : 'Add an account'}
+      footer={<><button className="btn" onClick={close}>Cancel</button><button className="btn btn-primary" form="acct-form">Save account</button></>}>
+      <form id="acct-form" className="form-grid" onSubmit={save}>
+        <div className="field"><label htmlFor="a-n">Name</label><input id="a-n" className="input" required value={v.name} onChange={set('name')} placeholder="SBI Savings" /></div>
+        <div className="field"><label htmlFor="a-t">Type</label>
+          <select id="a-t" className="select" value={v.type} onChange={set('type')} disabled={!!editing}><option value="bank">Bank account</option><option value="wallet">Wallet</option></select></div>
+        <div className="field full"><label htmlFor="a-b">Current balance</label><div className="input-prefix"><span>₹</span><input id="a-b" className="input" required inputMode="decimal" value={v.balance} onChange={set('balance')} /></div>
+          <span className="hint">Just the name and balance. FinPilot never asks for account numbers.</span></div>
         {err && <div className="full error-text" role="alert">{err}</div>}
       </form>
     </Modal>

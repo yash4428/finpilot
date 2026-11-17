@@ -24,10 +24,12 @@ public class DashboardService {
     private final BudgetService budgets;
     private final DuesService dues;
     private final CreditScoreService credit;
+    private final HealthScoreService health;
 
     public DashboardService(UserRepo users, CardRepo cards, LoanRepo loans, GoalRepo goals, TransactionRepo txns,
                             NotificationRepo notifications, ForecastService forecast, AnalyticsService analytics,
-                            BudgetService budgets, DuesService dues, CreditScoreService credit) {
+                            BudgetService budgets, DuesService dues, CreditScoreService credit,
+                            HealthScoreService health) {
         this.users = users;
         this.cards = cards;
         this.loans = loans;
@@ -39,6 +41,7 @@ public class DashboardService {
         this.budgets = budgets;
         this.dues = dues;
         this.credit = credit;
+        this.health = health;
     }
 
     public Map<String, Object> build(Long userId) {
@@ -94,6 +97,8 @@ public class DashboardService {
         out.put("recent", recent);
         out.put("goals", goals.findByUserIdOrderByIdAsc(userId));
         out.put("creditScore", credit.estimate(userId));
+        out.put("health", health.score(userId));
+        out.put("heatmap", analytics.heatmap(userId, today, 13));
         out.put("unreadNotifications", notifications.countByUserIdAndReadFalse(userId));
         return out;
     }

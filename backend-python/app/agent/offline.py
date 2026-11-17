@@ -61,9 +61,14 @@ def _afford(q: str, tb: Toolbox, today: date) -> dict:
              "- Safe amount = the lower of those two"]
     if next_due:
         lines.append(f"- Next bill: {next_due['label']}, {inr(next_due['amount'])} on {_d(next_due['due_date'])}")
-    if not a["affordable"]:
-        lines += ["", "If you need it soon, wait for next month's salary or pick a no-cost EMI so this month's "
-                      "cash isn't hit all at once."]
+    best = next((o for o in a["options"] if o["id"] == a["recommended_option"]), None)
+    if best and best["id"] != "pay_now":
+        lines += ["", f"**Smarter way to pay:** {best['label']} at {inr(best['monthly'])}/month"
+                      + (" with no extra cost." if best["total_interest"] == 0
+                         else f", costing {inr(best['total_interest'])} in interest overall.")
+                      + " Only the first instalment comes out of this month's money."]
+    elif not a["affordable"]:
+        lines += ["", "No EMI plan fits this month either. Waiting for next month's salary is the safer move."]
     return {
         "answer": "\n".join(lines),
         "verdict": {"type": "afford", "ok": a["affordable"], "comfort": a["comfort"], "amount": amount,

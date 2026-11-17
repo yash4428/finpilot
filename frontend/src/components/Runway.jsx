@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle2, ChevronDown, AlertTriangle, XCircle, Info } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { compact, fmtDate, inr } from '../format.js'
 import { Money } from './ui.jsx'
 
@@ -9,8 +9,10 @@ import { Money } from './ui.jsx'
  * order it will leave your account. What's left at the end (saffron) is the month-end balance.
  * Typing an amount carves a purchase out of that runway and shows the verdict live.
  */
-export default function Runway({ sts }) {
+export default function Runway({ sts, pilotAmount }) {
   const [amount, setAmount] = useState('')
+  // Voice Pilot sets the purchase amount, so the strip animates the answer.
+  useEffect(() => { if (pilotAmount?.value) setAmount(String(Math.round(pilotAmount.value))) }, [pilotAmount])
   const [hover, setHover] = useState(null)
   const [open, setOpen] = useState(false)
 
@@ -20,7 +22,8 @@ export default function Runway({ sts }) {
   const verdict = buy <= 0 ? null : buy <= headroom * 0.5 ? 'ok' : buy <= headroom ? 'tight' : 'no'
   const buyInLeft = Math.min(buy, Math.max(left, 0))
   const short = Math.max(0, buy - Math.max(left, 0))
-  const sliderMax = Math.max(10000, Math.ceil((headroom * 1.6) / 1000) * 1000)
+  const sliderMax = Math.max(10000, Math.ceil((Math.max(headroom * 1.6, buy)) / 1000) * 1000)
+  const emi = verdict && verdict !== 'ok' ? bestEmi(buy, headroom) : null
 
   return (
     <section className="runway" aria-label="Safe to spend">
@@ -36,7 +39,11 @@ export default function Runway({ sts }) {
           <div className="runway-figure"><Money value={sts.predictedMonthEnd} rupeeClass="rupee" /></div>
           <div className="runway-note">After recurring bills and ~{inr(sts.variableDaily)}/day of usual spending over {sts.daysLeft} days.</div>
         </div>
-        <span className="runway-model hide-sm" title="Forecast method">{sts.model}</span>
+        <div className="allowance" title={`Keeps ${inr(sts.savingsTarget)} (10% of income) aside as savings this month`}>
+          <span>Spend today</span>
+          <b className="num">{inr(Math.max(0, sts.leftToday))}</b>
+          <small>of {inr(sts.dailyAllowance)}/day · {inr(sts.savingsTarget)} saved</small>
+        </div>
       </div>
 
       <div className="strip" onMouseLeave={() => setHover(null)}>
@@ -78,10 +85,10 @@ export default function Runway({ sts }) {
         </div>
         <div className="strip-scale"><span>Balance {inr(sts.balance)}</span><span>Month end {inr(left)}</span></div>
         <div className="legend" aria-hidden>
-          <span><i style={{ background: 'repeating-linear-gradient(135deg,#2B5257 0 3px,#3a6a70 3px 6px)' }} />Bills & EMIs</span>
-          <span><i style={{ background: '#2F6166' }} />Recurring</span>
-          <span><i style={{ background: '#3A7176' }} />Usual spending</span>
-          <span><i style={{ background: 'var(--saffron)' }} />Yours to keep</span>
+          <span><i style={{ background: 'repeating-linear-gradient(135deg,#2E2E36 0 3px,#4A4A55 3px 6px)' }} />Bills & EMIs</span>
+          <span><i style={{ background: '#3A3A44' }} />Recurring</span>
+          <span><i style={{ background: '#4C4C58' }} />Usual spending</span>
+          <span><i style={{ background: 'linear-gradient(90deg,#B8893A,#F1D59A)' }} />Yours to keep</span>
         </div>
       </div>
 
@@ -102,6 +109,11 @@ export default function Runway({ sts }) {
           {verdict === 'no' && <span className="verdict no"><XCircle size={16} /> Over by {inr(buy - headroom)}</span>}
           {!verdict && <span className="verdict" style={{ color: 'var(--night-ink-2)', fontWeight: 500 }}>Up to {inr(headroom)} is safe</span>}
         </div>
+        {emi && (
+          <div className="emi-hint">
+            Smarter: <b>{inr(emi.monthly)}/month</b> on a {emi.label}{emi.interest > 0 ? ` (${inr(emi.interest)} interest)` : ' at no extra cost'}. Only the first instalment hits this month.
+          </div>
+        )}
       </div>
 
       <button className="trace-toggle" style={{ color: 'var(--night-ink-2)', marginTop: 14 }} onClick={() => setOpen((o) => !o)} aria-expanded={open}>
@@ -156,6 +168,22 @@ function build(sts) {
   const scale = committed > total ? total / committed : 1
   segments.forEach((s) => { s.amount *= scale })
   return { segments, total, left: Number(sts.predictedMonthEnd) }
+}
+
+/** Same plans the agent compares (no-cost 3/6 months, 12 months at 15%): the cheapest that fits. */
+function bestEmi(amount, headroom) {
+  const plans = [
+    { label: '3-month no-cost EMI', months: 3, rate: 0 },
+    { label: '6-month no-cost EMI', months: 6, rate: 0 },
+    { label: '12-month EMI at 15%', months: 12, rate: 15 },
+  ].map((p) => {
+    const r = p.rate / 1200
+    const monthly = r ? (amount * r * (1 + r) ** p.months) / ((1 + r) ** p.months - 1) : amount / p.months
+    return { ...p, monthly, interest: monthly * p.months - amount }
+  })
+  // Same rule as the agent: cheapest in interest, then the gentlest monthly amount.
+  return plans.filter((p) => p.monthly <= headroom)
+    .sort((a, b) => a.interest - b.interest || b.months - a.months)[0] || null
 }
 
 function shortLabel(label) {

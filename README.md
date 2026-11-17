@@ -66,6 +66,13 @@ cd frontend && npm install && npm run dev
 
 Then open http://localhost:5173.
 
+## Talk to Pilot (voice)
+
+Press the gold mic button (bottom-right) and ask in English, Hinglish or Hindi, e.g. *"Kya main 20 hazaar ka phone le
+sakta hoon?"*. Pilot answers out loud and the dashboard reacts: the safe-to-spend strip carves out the purchase, or the
+section behind the answer scrolls into view and glows. Voice input uses the browser's speech recognition (Chrome, Edge
+or Safari; Chrome needs an internet connection for it). The suggestion chips and the text box work everywhere.
+
 ## What to demo
 
 | Feature | Where |
@@ -74,7 +81,10 @@ Then open http://localhost:5173.
 | Add a card or loan → its due appears with a reminder | Cards & loans → Add, then Dues and the bell |
 | Record/import transactions → auto-categorized → anomaly flagged | Transactions → Import CSV (sample file linked in the dialog) |
 | Old vs new regime comparison and save-tax suggestions | Tax (drag the what-if sliders) |
-| "Can I afford a ₹20,000 phone this month?" answered from live data | Ask Pilot (⌘K) |
+| "Can I afford a ₹20,000 phone this month?" answered from live data | Ask Pilot (⌘K), or the mic button |
+| Voice in Hinglish: "Kya main dedh lakh ki bike le sakta hoon?" → spoken answer, EMI suggestion, dashboard reacts | Mic button |
+| Daily allowance, FinPilot score, spending calendar, autopay detective (with price-rise alert) | Overview |
+| Goals on autopilot: monthly amount needed vs your surplus; add money to a goal | Goals |
 | "What is 80C?" answered with a cited source | Ask Pilot; open "How Pilot worked this out" for the tool trace |
 
 ## The two hard rules, in code

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowUp, BookOpen, ChevronDown, ShieldCheck, Sparkles, X, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
+import { ArrowUp, BookOpen, ChevronDown, ShieldCheck, Sparkles, X, CheckCircle2, AlertTriangle, XCircle, Mic } from 'lucide-react'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { api } from '../api.js'
 import { inr } from '../format.js'
@@ -13,6 +13,7 @@ const SUGGESTIONS = [
   'What bills are due soon?',
   'What is 80C?',
 ]
+const Recognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
 const WORKING = ['Reading your question', 'Fetching your data', 'Running the numbers', 'Checking every figure']
 
 export default function Chat({ compact, seed, onClose, onSeedUsed }) {
@@ -20,6 +21,7 @@ export default function Chat({ compact, seed, onClose, onSeedUsed }) {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [step, setStep] = useState(0)
+  const [listening, setListening] = useState(false)
   const scroller = useRef(null)
   const inputRef = useRef(null)
   const toast = useToast()
@@ -41,6 +43,18 @@ export default function Chat({ compact, seed, onClose, onSeedUsed }) {
 
   useEffect(() => { if (seed) { send(seed); onSeedUsed?.() } }, [seed]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { inputRef.current?.focus() }, [])
+
+  function dictate() {
+    if (!Recognition || listening) return
+    const r = new Recognition()
+    r.lang = 'en-IN'
+    r.interimResults = true
+    r.onresult = (e) => setText(Array.from(e.results).map((x) => x[0].transcript).join(''))
+    r.onend = () => setListening(false)
+    r.onerror = () => setListening(false)
+    setListening(true)
+    r.start()
+  }
 
   async function send(q) {
     const question = (q ?? text).trim()
@@ -113,6 +127,12 @@ export default function Chat({ compact, seed, onClose, onSeedUsed }) {
           <textarea ref={inputRef} rows={1} value={text} placeholder="Ask anything about your money…" aria-label="Your question"
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }} />
+          {Recognition && (
+            <button type="button" className="btn btn-ghost" style={{ width: 38, padding: 0, borderRadius: 11, color: listening ? 'var(--brand-ink)' : undefined }}
+              onClick={dictate} aria-label={listening ? 'Listening' : 'Speak your question'} aria-pressed={listening}>
+              <Mic size={17} className={listening ? 'speaking' : ''} />
+            </button>
+          )}
           <button className="btn btn-brand" style={{ width: 38, padding: 0, borderRadius: 11 }} disabled={busy || !text.trim()} aria-label="Send">
             <ArrowUp size={17} />
           </button>
@@ -182,12 +202,28 @@ function Verdict({ v }) {
   const Icon = kind === 'ok' ? CheckCircle2 : kind === 'tight' ? AlertTriangle : XCircle
   const label = kind === 'ok' ? 'Affordable' : kind === 'tight' ? 'Affordable, but tight' : 'Not this month'
   return (
-    <div className={`verdict-card ${kind}`}>
-      <Icon size={22} />
-      <div>
-        <b>{label}</b>
-        <div style={{ fontSize: 12.5, opacity: 0.9 }}>{inr(v.amount)} vs {inr(v.headroom)} safe headroom</div>
+    <div style={{ marginBottom: 10 }}>
+      <div className={`verdict-card ${kind}`} style={{ marginBottom: v.options ? 6 : 0 }}>
+        <Icon size={22} />
+        <div>
+          <b>{label}</b>
+          <div style={{ fontSize: 12.5, opacity: 0.9 }}>{inr(v.amount)} vs {inr(v.headroom)} safe headroom</div>
+        </div>
       </div>
+      {v.options && (
+        <table className="emi-table" aria-label="Ways to pay">
+          <tbody>
+            {v.options.map((o) => (
+              <tr key={o.id} className={o.id === v.recommended ? 'best' : ''}>
+                <td>{o.id === v.recommended ? '★ ' : ''}{o.label}</td>
+                <td className="num" style={{ textAlign: 'right' }}>{inr(o.monthly)}{o.months > 1 ? '/mo' : ''}</td>
+                <td className="num faint" style={{ textAlign: 'right' }}>{o.total_interest > 0 ? `+${inr(o.total_interest)} interest` : 'no interest'}</td>
+                <td style={{ textAlign: 'right', color: o.fits ? 'var(--mint)' : 'var(--chilli)' }}>{o.fits ? 'fits' : 'too much'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   )
 }

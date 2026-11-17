@@ -54,7 +54,7 @@ public class AgentService {
             h.toolsUsed = (List<Map<String, Object>>) res.getOrDefault("tools_used", List.of());
             h.sources = (List<Map<String, Object>>) res.getOrDefault("sources", List.of());
             Map<String, Object> meta = new HashMap<>();
-            for (String k : List.of("mode", "intent", "verdict", "facts", "trace", "grounding")) {
+            for (String k : List.of("mode", "intent", "lang", "speech", "verdict", "facts", "trace", "grounding")) {
                 if (res.get(k) != null) meta.put(k, res.get(k));
             }
             h.meta = meta;

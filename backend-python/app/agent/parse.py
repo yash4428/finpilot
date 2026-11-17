@@ -25,11 +25,90 @@ CATEGORY_WORDS = {
     "Education": ["education", "course", "courses", "books"],
 }
 
+# ---- Hinglish / Hindi support ----------------------------------------------------------
+# Voice input often arrives as romanised Hinglish ("kya main 20 hazaar ka phone le sakta hoon")
+# or, with the Hindi recogniser, in Devanagari. Both are normalised to simple English cues
+# so the same intent rules apply. Answers stay grounded: only words change, never numbers.
+
+DEVANAGARI = {
+    "क्या": "kya", "मैं": "main", "में": "mein", "मेरा": "mera", "मेरी": "meri", "मेरे": "mere", "का": "ka", "की": "ki",
+    "के": "ke", "ले": "le", "सकता": "sakta", "सकती": "sakti", "हूं": "hoon", "हूँ": "hoon", "है": "hai", "हैं": "hain",
+    "खरीद": "kharid", "हजार": "hazaar", "हज़ार": "hazaar", "लाख": "lakh", "रुपये": "rupaye", "रुपए": "rupaye",
+    "कितना": "kitna", "कितने": "kitne", "खर्च": "kharch", "खर्चा": "kharcha", "किया": "kiya", "पिछले": "pichle",
+    "महीने": "mahine", "महीना": "mahina", "इस": "is", "बिल": "bill", "बजट": "budget", "टैक्स": "tax", "कैसे": "kaise",
+    "बचाऊं": "bachaun", "बचाएं": "bachaye", "बचाये": "bachaye", "बचेगा": "bachega", "बचेंगे": "bachenge", "कर्ज": "karz",
+    "कर्ज़": "karz", "लोन": "loan", "पहले": "pehle", "खाना": "khana", "खाने": "khane", "फोन": "phone", "फ़ोन": "phone",
+    "भरना": "bharna", "कब": "kab", "पैसे": "paise", "बताओ": "batao", "होता": "hota", "क्रेडिट": "credit", "स्कोर": "score",
+}
+DEVANAGARI_DIGITS = str.maketrans("०१२३४५६७८९", "0123456789")
+
+NUMBER_WORDS = {
+    # English
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+    "eleven": 11, "twelve": 12, "fifteen": 15, "twenty": 20, "twenty five": 25, "thirty": 30, "forty": 40,
+    "fifty": 50, "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90, "hundred": 100,
+    # Hindi (romanised)
+    "ek": 1, "do": 2, "teen": 3, "char": 4, "chaar": 4, "paanch": 5, "panch": 5, "chhe": 6, "saat": 7, "aath": 8,
+    "nau": 9, "das": 10, "pandrah": 15, "bees": 20, "pachchees": 25, "pachis": 25, "tees": 30, "chaalis": 40,
+    "chalees": 40, "pachaas": 50, "pachas": 50, "saath": 60, "sattar": 70, "assi": 80, "nabbe": 90, "sau": 100,
+    "dedh": 1.5, "dhai": 2.5, "dhaai": 2.5, "sava": 1.25, "saade": None,
+}
+_NUM_ALT = "|".join(sorted((re.escape(k) for k, v in NUMBER_WORDS.items() if v), key=len, reverse=True))
+_SCALE = r"(hazaar|hazar|hajar|hazzar|thousand|lakh|lakhs|lac)"
+
+# Hinglish phrase → English cue. Order matters: longer phrases first.
+HINGLISH = [
+    (r"\b(le|khareed|kharid) (sakta|sakti|sakte|lu|loon|lun) (hoon|hun|hu|hain|kya)?", " can i buy "),
+    (r"\b(lena|kharidna) (chahta|chahti|chahiye)( hoon| hun| hu)?", " can i buy "),
+    (r"\bafford kar (sakta|sakti|sakte)( hoon| hun| hu)?", " can i afford "),
+    (r"\b(kitna|kitne) (kharcha|kharch|paisa|paise) (kiya|hua|gaye|gaya)", " how much did i spend "),
+    (r"\b(kharcha|kharch) (kiya|hua)", " spent "),
+    (r"\b(kharcha|kharch)\b", " spend "),
+    (r"\bpichhle mahine|\bpichle mahine|\bpichla mahina\b", " last month "),
+    (r"\bis mahine\b", " this month "),
+    (r"\b(mahine|month) ke (end|aakhir|ant) (tak|mein)?", " month end "),
+    (r"\b(kitna|kitne) (paise )?(bachega|bachenge|bachta)", " how much will i have month end "),
+    (r"\b(bill|bills|emi|kist) (kab|kab tak) (bharna|bharne|dena)?", " bills due "),
+    (r"\b(kab|kitne) bharna\b", " due "),
+    (r"\b(kaunsa|kaun sa|konsa) (loan|karz|card) pehle\b", " which debt pay off first "),
+    (r"\b(karz|karza|qarz)\b", " debt "),
+    (r"\btax (kaise|kese) (bachaye|bachaun|bachayein|bachau|bacha sakta)", " how can i save tax "),
+    (r"\b(khana|khane|khaana)\b", " food "),
+    (r"\b(kapde|kapda)\b", " clothes "),
+    (r"\b(mera|meri|mere)\b", " my "),
+]
+HINGLISH_MARKERS = re.compile(
+    r"\b(kya|mera|meri|mere|hai|hoon|hun|hu|sakta|sakti|sakte|kitna|kitne|kharch|kharcha|hazaar|hazar|mahine|"
+    r"bachega|bachenge|kaise|karz|pehle|batao|paise|rupaye|bharna|kab|chahiye|bachaye|bachaun|samjhao|chukau)\b")
+
+
+def normalize(q: str) -> str:
+    """Devanagari → romanised, number words → digits, Hinglish phrases → English cues."""
+    s = q.translate(DEVANAGARI_DIGITS)
+    for dev, rom in DEVANAGARI.items():
+        s = s.replace(dev, rom)
+    s = s.lower()
+    # "bees hazaar" → "20 hazaar", "twenty thousand" → "20 thousand", "dedh lakh" → "1.5 lakh"
+    s = re.sub(rf"\b({_NUM_ALT})\s+{_SCALE}\b", lambda m: f"{NUMBER_WORDS[m.group(1)]:g} {m.group(2)}", s)
+    s = re.sub(r"\b(hazaar|hazar|hajar|hazzar)\b", "thousand", s)
+    for pat, repl in HINGLISH:
+        s = re.sub(pat, repl, s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def detect_lang(q: str) -> str:
+    """'hi' for Hindi/Hinglish questions, else 'en'. Used only to pick the spoken reply style."""
+    if re.search(r"[\u0900-\u097F]", q):
+        return "hi"
+    return "hi" if len(HINGLISH_MARKERS.findall(q.lower())) >= 2 else "en"
+
+
 MONTHS = {m.lower(): i for i, m in enumerate(calendar.month_name) if m}
 MONTHS.update({m.lower(): i for i, m in enumerate(calendar.month_abbr) if m})
 
 
 def parse_amount(q: str) -> float | None:
+    q = normalize(q)
     for m in AMOUNT_RE.finditer(q):
         num, unit = m.groups()
         # Skip things like "80C", "3 months", "last 30 days".
@@ -45,7 +124,7 @@ def parse_amount(q: str) -> float | None:
 
 
 def parse_period(q: str, today: date) -> tuple[date, date, str]:
-    s = q.lower()
+    s = normalize(q)
     first = today.replace(day=1)
     if "last month" in s or "previous month" in s:
         end = first - timedelta(days=1)
@@ -75,7 +154,7 @@ def parse_period(q: str, today: date) -> tuple[date, date, str]:
 
 
 def detect_category(q: str) -> str | None:
-    s = q.lower()
+    s = normalize(q)
     for cat, words in CATEGORY_WORDS.items():
         if any(re.search(rf"\b{re.escape(w)}\b", s) for w in words):
             return cat
@@ -83,9 +162,12 @@ def detect_category(q: str) -> str | None:
 
 
 def detect_intent(q: str) -> str:
-    s = q.lower().strip()
+    s = normalize(q)
     has_amount = parse_amount(q) is not None
-    personal = re.search(r"\b(my|i|me|am i|do i|i'm|i've)\b", s) is not None
+    personal = re.search(r"\b(my|i|me|am i|do i|i'm|i've|main)\b", s) is not None
+    # "80C kya hai", "HRA samjhao" → a definition question.
+    if re.search(r"\b(kya hai|kya hota hai|kya hoti hai|samjhao|samjha do|matlab)\b", s) and not has_amount:
+        s = "what is " + s
     if re.search(r"\b(afford|can i (buy|spend|get)|should i (buy|get)|is it ok to (buy|spend)|purchase)\b", s) and has_amount:
         return "afford"
     if re.search(r"pay ?off|debt|which (loan|card|debt)|avalanche|snowball|clear my (loans?|cards?)|prepay", s):

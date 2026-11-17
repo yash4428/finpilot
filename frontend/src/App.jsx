@@ -7,6 +7,7 @@ import { Mark } from './components/Logo.jsx'
 import Budgets from './pages/Budgets.jsx'
 import CardsLoans from './pages/CardsLoans.jsx'
 import Dues from './pages/Dues.jsx'
+import Goals from './pages/Goals.jsx'
 import Login from './pages/Login.jsx'
 import Overview from './pages/Overview.jsx'
 import Pilot from './pages/Pilot.jsx'
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/cards" element={<CardsLoans />} />
           <Route path="/dues" element={<Dues />} />
           <Route path="/budgets" element={<Budgets />} />
+          <Route path="/goals" element={<Goals />} />
           <Route path="/tax" element={<Tax />} />
           <Route path="/pilot" element={<Pilot />} />
           <Route path="*" element={<Navigate to="/" replace />} />

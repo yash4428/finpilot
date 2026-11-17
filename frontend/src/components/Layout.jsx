@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Bell, CalendarClock, CreditCard, LayoutGrid, LogOut, Moon, PiggyBank, Receipt, Sparkles, Sun, Landmark,
-  AlertTriangle, BellRing, Info, Wallet,
+  AlertTriangle, BellRing, Info, Wallet, Target,
 } from 'lucide-react'
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
@@ -9,6 +9,7 @@ import { api } from '../api.js'
 import { useAuth } from '../auth.jsx'
 import { relDays } from '../format.js'
 import Chat from './Chat.jsx'
+import VoicePilot from './VoicePilot.jsx'
 import { Mark } from './Logo.jsx'
 import { Drawer } from './ui.jsx'
 
@@ -18,14 +19,15 @@ const NAV = [
   { to: '/cards', label: 'Cards & loans', icon: CreditCard },
   { to: '/dues', label: 'Dues', icon: CalendarClock },
   { to: '/budgets', label: 'Budgets', icon: PiggyBank },
+  { to: '/goals', label: 'Goals', icon: Target },
   { to: '/tax', label: 'Tax', icon: Landmark },
 ]
 const TITLES = {
   '/': null, '/transactions': 'Transactions', '/cards': 'Cards & loans', '/dues': 'Dues',
-  '/budgets': 'Budgets', '/tax': 'Tax', '/pilot': 'Ask Pilot',
+  '/budgets': 'Budgets', '/goals': 'Goals', '/tax': 'Tax', '/pilot': 'Ask Pilot',
 }
 
-const ShellCtx = createContext({ openPilot: () => {}, bump: 0, refreshShell: () => {} })
+const ShellCtx = createContext({ openPilot: () => {}, bump: 0, refreshShell: () => {}, pilotEvent: null })
 export const useShell = () => useContext(ShellCtx)
 
 export default function Layout({ children }) {
@@ -35,8 +37,8 @@ export default function Layout({ children }) {
   const [pilotSeed, setPilotSeed] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [bump, setBump] = useState(0)
-  const [theme, setTheme] = useState(() => document.documentElement.dataset.theme ||
-    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
+  const [pilotEvent, setPilotEvent] = useState(null)
+  const [theme, setTheme] = useState(() => document.documentElement.dataset.theme || 'dark')
 
   const openPilot = useCallback((q) => { setPilotSeed(q || null); setPilotOpen(true) }, [])
   const refreshShell = useCallback(() => setBump((b) => b + 1), [])
@@ -63,7 +65,7 @@ export default function Layout({ children }) {
   const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
-    <ShellCtx.Provider value={{ openPilot, bump, refreshShell }}>
+    <ShellCtx.Provider value={{ openPilot, bump, refreshShell, pilotEvent }}>
       <div className="shell">
         <aside className="sidebar">
           <div className="brand"><Mark /><span className="brand-word">FinPilot</span></div>
@@ -119,6 +121,8 @@ export default function Layout({ children }) {
           </NavLink>
         ))}
       </nav>
+
+      <VoicePilot onEvent={setPilotEvent} openChat={() => setPilotOpen(true)} />
 
       <Drawer open={pilotOpen} onClose={() => setPilotOpen(false)} label="Ask Pilot">
         <Chat compact seed={pilotSeed} onClose={() => setPilotOpen(false)} onSeedUsed={() => setPilotSeed(null)} />

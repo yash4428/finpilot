@@ -186,6 +186,14 @@ def affordability(forecast: dict, amount: float) -> dict:
     headroom = forecast["safe_headroom"]
     month_end_after = forecast["predicted_month_end"] - amount
     ok = amount <= headroom
+    options = emi_options(amount, headroom)
+    # Pay now if it's comfortable; otherwise the cheapest plan whose monthly cost fits.
+    if ok and amount <= 0.5 * headroom:
+        best = "pay_now"
+    else:
+        fitting = [o for o in options if o["fits"] and o["id"] != "pay_now"]
+        best = min(fitting, key=lambda o: (o["total_interest"], -o["months"]))["id"] if fitting else \
+            ("pay_now" if ok else None)
     return {
         "amount": amount,
         "safe_headroom": headroom,
@@ -195,7 +203,33 @@ def affordability(forecast: dict, amount: float) -> dict:
         "affordable": ok,
         "comfort": "comfortable" if ok and amount <= 0.5 * headroom else ("tight" if ok else "not affordable"),
         "shortfall": round(max(0.0, amount - headroom), 2),
+        "options": options,
+        "recommended_option": best,
     }
+
+
+CARD_EMI_RATE = 15.0  # typical bank card-EMI rate, % a year
+
+
+def emi_options(amount: float, headroom: float) -> list[dict]:
+    """Pay now vs no-cost EMI vs a standard card EMI. Only the first instalment hits this month."""
+    def plan(id_, label, months, rate):
+        if rate == 0:
+            monthly = amount / months
+        else:
+            r = rate / 1200
+            monthly = amount * r * (1 + r) ** months / ((1 + r) ** months - 1)
+        total = monthly * months
+        return {"id": id_, "label": label, "months": months, "rate": rate, "monthly": round(monthly, 2),
+                "total_interest": round(total - amount, 2), "fits": monthly <= headroom}
+
+    return [
+        {"id": "pay_now", "label": "Pay now", "months": 1, "rate": 0, "monthly": round(amount, 2),
+         "total_interest": 0.0, "fits": amount <= headroom},
+        plan("nce_3", "3-month no-cost EMI", 3, 0),
+        plan("nce_6", "6-month no-cost EMI", 6, 0),
+        plan("emi_12", f"12-month card EMI at {CARD_EMI_RATE:g}%", 12, CARD_EMI_RATE),
+    ]
 
 
 def simulate(debts: list[dict], extra: float, key) -> dict:

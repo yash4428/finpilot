@@ -110,6 +110,19 @@ public class AnalyticsService {
         return out;
     }
 
+    /** Daily spend for the last `weeks` weeks (Mon-aligned), for the calendar heatmap. Excludes flagged one-offs. */
+    public List<Map<String, Object>> heatmap(Long userId, LocalDate today, int weeks) {
+        LocalDate start = today.minusDays(today.getDayOfWeek().getValue() - 1L).minusWeeks(weeks - 1L);
+        Map<LocalDate, BigDecimal> byDay = new HashMap<>();
+        between(userId, start, today).stream().filter(t -> isSpend(t) && !t.isAnomaly && !"Rent".equals(cat(t)))
+                .forEach(t -> byDay.merge(t.date, t.amount.negate(), BigDecimal::add));
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (LocalDate d = start; !d.isAfter(today); d = d.plusDays(1)) {
+            out.add(Map.of("date", d.toString(), "amount", Money.r(byDay.getOrDefault(d, BigDecimal.ZERO))));
+        }
+        return out;
+    }
+
     public List<Map<String, Object>> topMerchants(List<Transaction> list, int n) {
         Map<String, BigDecimal> m = new HashMap<>();
         list.stream().filter(AnalyticsService::isSpend)

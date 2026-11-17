@@ -144,17 +144,23 @@ Supporting endpoints (added during the build; all JWT-scoped):
 |---|---|
 | GET /me, GET /health | Current user profile; liveness |
 | GET / POST /accounts, PUT /accounts/{id} | Bank/wallet accounts |
-| GET / POST /goals, PUT /goals/{id} | Savings goals |
+| GET / POST /goals, PUT / DELETE /goals/{id} | Savings goals |
+| POST /goals/{id}/contribute | Move money from the primary bank account into a goal (recorded as a transfer) |
 | GET /categories | System + user categories |
 | PUT / DELETE /transactions/{id} | Edit (a category change = training label) / delete |
 | POST /transactions/{id}/dismiss-anomaly | Mark a flagged transaction as expected |
 | POST /transactions/analyze | Re-run categorization + anomaly detection over history |
 | DELETE /budgets/{id} | Remove a budget |
 | POST /dues/refresh | Run the daily reminder pass now for the current user |
-| GET /forecast | Both safe-to-spend numbers + breakdown (backs the `forecast_balance` tool) |
+| GET /forecast | Both safe-to-spend numbers + breakdown, plus daily allowance (backs the `forecast_balance` tool) |
 | GET /credit-score | Simulated utilisation-based score + tips |
 | GET /notifications, POST /notifications/read-all | Proactive alerts |
 | GET /agent/history | Recent chat_history for the UI |
+
+`GET /dashboard` also returns `health` (FinPilot score 0–100 with four parts and monthly surplus) and `heatmap`
+(daily spend for 13 weeks). `/agent/chat` meta includes `lang` (en/hi) and `speech` (a short spoken reply built from
+tool results only). The agent's affordability check now includes EMI options (pay now, 3/6-month no-cost, 12-month
+card EMI) computed in code. The tool set is unchanged (still the 7 tools in §8).
 
 ## 6.1 API Contract — Internal (Java → Python)
 

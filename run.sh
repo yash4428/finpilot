@@ -7,6 +7,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 ROOT=$(pwd)
 mkdir -p .logs
+# Load settings such as ANTHROPIC_API_KEY from .env (copy .env.example to start).
+if [ -f .env ]; then set -a; . ./.env; set +a; fi
 
 say() { printf '\033[1;36m▸ %s\033[0m\n' "$*"; }
 fail() { printf '\033[1;31m✗ %s\033[0m\n' "$*"; exit 1; }

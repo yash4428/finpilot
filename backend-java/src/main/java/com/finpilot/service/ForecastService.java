@@ -67,6 +67,18 @@ public class ForecastService {
         // Headroom = what can go on a one-off purchase without breaking either number.
         BigDecimal headroom = disposableNow.min(monthEndBal).max(BigDecimal.ZERO);
 
+        // Daily allowance: money not committed to dues/recurring and not reserved as savings,
+        // spread evenly over the days left (today included).
+        BigDecimal monthlyIncome = monthlyIncome(userId, today, forecast);
+        BigDecimal savingsTarget = monthlyIncome.multiply(new BigDecimal("0.10")).setScale(-2, RoundingMode.HALF_UP).max(BigDecimal.ZERO);
+        BigDecimal variableLeft = Money.of(forecast.getOrDefault("variable_remaining", BigDecimal.ZERO));
+        BigDecimal todaySpent = txns.findByUserIdAndDateBetweenOrderByDateDescIdDesc(userId, today, today).stream()
+                .filter(t -> AnalyticsService.isSpend(t) && !t.isAnomaly)
+                .map(t -> t.amount.negate()).reduce(BigDecimal.ZERO, BigDecimal::add);
+        int daysLeft = ((Number) forecast.get("days_left")).intValue();
+        BigDecimal pool = monthEndBal.add(variableLeft).subtract(savingsTarget).add(todaySpent);
+        BigDecimal dailyAllowance = pool.divide(BigDecimal.valueOf(daysLeft + 1L), 0, RoundingMode.DOWN).max(BigDecimal.ZERO);
+
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("asOf", today.toString());
         out.put("monthEnd", monthEnd.toString());
@@ -79,6 +91,11 @@ public class ForecastService {
         out.put("recurring", forecast.get("recurring"));
         out.put("variableDaily", forecast.get("variable_daily"));
         out.put("headroom", Money.r(headroom));
+        out.put("dailyAllowance", Money.r(dailyAllowance));
+        out.put("todaySpent", Money.r(todaySpent));
+        out.put("leftToday", Money.r(dailyAllowance.subtract(todaySpent)));
+        out.put("savingsTarget", Money.r(savingsTarget));
+        out.put("monthlyIncome", Money.r(monthlyIncome));
         out.put("model", forecast.get("model"));
         return out;
     }
@@ -148,9 +165,24 @@ public class ForecastService {
         m.put("breakdown", breakdown);
         m.put("recurring", List.of());
         m.put("variable_daily", daily);
+        m.put("variable_remaining", Money.r(variableLeft));
         m.put("days_left", daysLeft);
         m.put("model", "fallback:average");
         return m;
+    }
+
+    /** Expected monthly income: detected recurring credits, else last month's income. */
+    private BigDecimal monthlyIncome(Long userId, LocalDate today, Map<String, Object> forecast) {
+        BigDecimal recurringIn = BigDecimal.ZERO;
+        if (forecast.get("recurring") instanceof List<?> list) {
+            for (Object o : list) {
+                if (o instanceof Map<?, ?> r && "in".equals(r.get("direction"))) recurringIn = recurringIn.add(Money.of(r.get("amount")));
+            }
+        }
+        if (recurringIn.signum() > 0) return recurringIn;
+        YearMonth prev = YearMonth.from(today).minusMonths(1);
+        return txns.findByUserIdAndDateBetweenOrderByDateDescIdDesc(userId, prev.atDay(1), prev.atEndOfMonth()).stream()
+                .filter(t -> t.amount.signum() > 0).map(t -> t.amount).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private static Map<String, Object> line(String label, BigDecimal amount, String kind, String detail) {

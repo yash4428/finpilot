@@ -20,7 +20,9 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 
 # Handled elsewhere (known dues) or not consumption.
-EXCLUDED_FROM_RECURRING = {"Loan EMI", "Card Payment", "Transfers"}
+# Card bills/EMIs are known dues; everyday categories repeat by habit, not by contract.
+EXCLUDED_FROM_RECURRING = {"Loan EMI", "Card Payment", "Transfers", "Groceries", "Dining", "Transport", "Fuel",
+                           "Shopping", "Personal Care"}
 EXCLUDED_FROM_VARIABLE = {"Loan EMI", "Card Payment", "Transfers", "Income", "Investments", "Rent"}
 
 
@@ -67,7 +69,14 @@ def detect_recurring(txns: list[dict], today: date) -> list[dict]:
         day = int(median([d.day for d in dates]))
         paid = any(d.year == today.year and d.month == today.month for d in dates)
         last = consistent[-1]
+        last_amt, prev_amt = abs(float(consistent[-1]["amount"])), abs(float(consistent[-2]["amount"]))
         found.append({
+            "last_date": consistent[-1]["date"],
+            "next_date": _next_charge(today, day, paid).isoformat(),
+            "last_amount": round(last_amt, 2),
+            # Flag a price rise (e.g. a subscription plan going up), ignoring tiny bill wobble.
+            "price_change": round(last_amt - prev_amt, 2) if prev_amt and (last_amt - prev_amt) / prev_amt > 0.02
+                            and r_category_is_fixed(last.get("category")) else 0.0,
             "merchant": last.get("merchant"),
             "key": key,
             "direction": direction,
@@ -80,6 +89,23 @@ def detect_recurring(txns: list[dict], today: date) -> list[dict]:
         })
     found.sort(key=lambda r: -r["amount"])
     return found
+
+
+FIXED_PRICE = {"Subscriptions", "Health", "Rent", "Investments", "Education"}
+
+
+def r_category_is_fixed(category: str | None) -> bool:
+    """Bills like electricity vary month to month; subscriptions and rent should not."""
+    return category in FIXED_PRICE
+
+
+def _next_charge(today: date, day: int, paid_this_month: bool) -> date:
+    y, m = today.year, today.month
+    if paid_this_month:
+        m += 1
+        if m == 13:
+            y, m = y + 1, 1
+    return date(y, m, min(day, calendar.monthrange(y, m)[1]))
 
 
 def predict_variable(txns: list[dict], recurring_ids: set, today: date, days_left: int) -> tuple[float, float, str]:

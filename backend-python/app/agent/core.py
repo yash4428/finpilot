@@ -14,9 +14,9 @@ import time
 from datetime import date
 
 from ..config import ANTHROPIC_API_KEY, LLM_ENABLED, LLM_MODEL
-from . import offline
+from . import offline, speech
 from .grounding import check
-from .parse import detect_intent, parse_amount
+from .parse import detect_intent, detect_lang, parse_amount
 from .redact import redact_text, to_llm_json
 from .tools import TOOL_SPECS, JavaApi, Toolbox
 
@@ -36,6 +36,7 @@ Hard rules:
 3. Advice or "what is" questions must use search_knowledge and cite the passages you rely on as [n] using each result's ref. If nothing relevant comes back, say you couldn't find it in the trusted documents instead of guessing.
 4. For affordability, use forecast_balance; its affordability_check field is computed exactly in code. State its verdict; don't recompute it differently.
 5. Any answer about tax ends with: "_Estimate only — consult a tax professional before filing._"
+6. If the user writes in Hinglish or Hindi, reply in simple Hinglish written in Roman script; keep figures in ₹.
 
 Style: a calm, direct advisor. Lead with the answer in one or two sentences, bold the key figure, then a short bulleted "why". Use ₹ with Indian digit grouping (₹1,23,456). Keep it under 160 words. No headings larger than bold text."""
 
@@ -43,6 +44,7 @@ Style: a calm, direct advisor. Lead with the answer in one or two sentences, bol
 def run(question: str, token: str, today: date, history: list[dict] | None = None) -> dict:
     t0 = time.perf_counter()
     intent = detect_intent(question)
+    lang = detect_lang(question)
     amount = parse_amount(question)
     tb = Toolbox(JavaApi(token), today, amount if intent == "afford" else None)
     trace = [{"step": "Interpret", "detail": INTENT_LABEL[intent] + (f" · amount {amount:,.0f}" if amount else "")}]
@@ -67,22 +69,29 @@ def run(question: str, token: str, today: date, history: list[dict] | None = Non
             trace.append({"step": "Compute", "detail": result["compute"]})
         trace.append({"step": "Synthesize", "detail": "Templated answer from tool figures"})
 
-    grounding = check(result["answer"], tb.evidence + [s["text"] for s in tb.sources], question)
+    # Spoken summary (voice mode), built from tool results only.
+    spoken = speech.build(intent, lang, tb.evidence, result["answer"], today)
+    if lang == "hi" and mode == "offline" and spoken:
+        result["answer"] = f"**{spoken}**\n\n{result['answer']}"
+
+    grounding = check(result["answer"] + "\n" + spoken, tb.evidence + [s["text"] for s in tb.sources], question)
     trace.append({"step": "Verify", "detail": f"{grounding['numbers']} figures checked against tool data"
                   + ("" if grounding["ok"] else f" · {len(grounding['ungrounded'])} untraced")})
 
     # Affordability verdict is always decided in code, whichever path wrote the prose.
     verdict = result.get("verdict")
-    if intent == "afford" and verdict is None:
-        f = next((e for e in tb.evidence if isinstance(e, dict) and "affordability_check" in e), None)
-        if f:
-            a = f["affordability_check"]
-            verdict = {"type": "afford", "ok": a["affordable"], "comfort": a["comfort"], "amount": a["amount"],
-                       "headroom": a["safe_headroom"], "monthEndAfter": a["month_end_after_purchase"]}
+    f = next((e for e in tb.evidence if isinstance(e, dict) and "affordability_check" in e), None)
+    if intent == "afford" and f:
+        a = f["affordability_check"]
+        verdict = {"type": "afford", "ok": a["affordable"], "comfort": a["comfort"], "amount": a["amount"],
+                   "headroom": a["safe_headroom"], "monthEndAfter": a["month_end_after_purchase"],
+                   "options": a["options"], "recommended": a["recommended_option"]}
 
     return {
         "answer": result["answer"],
         "intent": intent,
+        "lang": lang,
+        "speech": spoken,
         "mode": mode,
         "tools_used": tb.calls,
         "sources": [{"n": s["n"], "id": s["id"], "title": s["title"], "section": s["section"],

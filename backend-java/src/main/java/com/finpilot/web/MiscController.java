@@ -7,13 +7,16 @@ import com.finpilot.model.Account;
 import com.finpilot.model.Category;
 import com.finpilot.model.Goal;
 import com.finpilot.model.Notification;
+import com.finpilot.model.Transaction;
 import com.finpilot.repo.AccountRepo;
 import com.finpilot.repo.GoalRepo;
 import com.finpilot.repo.NotificationRepo;
+import com.finpilot.repo.TransactionRepo;
 import com.finpilot.service.CategoryService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -28,12 +31,15 @@ public class MiscController {
     private final GoalRepo goals;
     private final NotificationRepo notifications;
     private final CategoryService categories;
+    private final TransactionRepo txns;
 
-    public MiscController(AccountRepo accounts, GoalRepo goals, NotificationRepo notifications, CategoryService categories) {
+    public MiscController(AccountRepo accounts, GoalRepo goals, NotificationRepo notifications, CategoryService categories,
+                          TransactionRepo txns) {
         this.accounts = accounts;
         this.goals = goals;
         this.notifications = notifications;
         this.categories = categories;
+        this.txns = txns;
     }
 
     public record AccountReq(@NotBlank String name, String type, @NotNull BigDecimal balance) {}
@@ -80,6 +86,40 @@ public class MiscController {
     public Goal updateGoal(@PathVariable Long id, @Valid @RequestBody GoalReq req) {
         Goal g = goals.findByIdAndUserId(id, CurrentUser.id()).orElseThrow(() -> ApiException.notFound("Goal"));
         applyGoal(g, req);
+        return goals.save(g);
+    }
+
+    @DeleteMapping("/goals/{id}")
+    public Map<String, Object> deleteGoal(@PathVariable Long id) {
+        Goal g = goals.findByIdAndUserId(id, CurrentUser.id()).orElseThrow(() -> ApiException.notFound("Goal"));
+        goals.delete(g);
+        return Map.of("deleted", id);
+    }
+
+    public record ContributeReq(@NotNull BigDecimal amount) {}
+
+    /** Moves money from the primary bank account into a goal (recorded as a transfer). */
+    @PostMapping("/goals/{id}/contribute")
+    @Transactional
+    public Goal contribute(@PathVariable Long id, @Valid @RequestBody ContributeReq req) {
+        Long userId = CurrentUser.id();
+        Goal g = goals.findByIdAndUserId(id, userId).orElseThrow(() -> ApiException.notFound("Goal"));
+        if (req.amount().signum() <= 0) throw ApiException.bad("Amount must be more than zero");
+        Account bank = accounts.findByUserIdOrderByIdAsc(userId).stream().filter(a -> "bank".equals(a.type)).findFirst()
+                .orElseThrow(() -> ApiException.bad("Add a bank account first"));
+        if (bank.balance.compareTo(req.amount()) < 0) throw ApiException.bad("Not enough balance in " + bank.name);
+        bank.balance = bank.balance.subtract(req.amount());
+        accounts.save(bank);
+        Transaction t = new Transaction();
+        t.userId = userId;
+        t.accountId = bank.id;
+        t.amount = Money.r(req.amount().negate());
+        t.date = LocalDate.now();
+        t.merchant = "Moved to goal: " + g.name;
+        t.category = categories.byName("Transfers");
+        t.categoryConfirmed = true;
+        txns.save(t);
+        g.savedAmount = Money.r(g.savedAmount.add(req.amount()));
         return goals.save(g);
     }
 

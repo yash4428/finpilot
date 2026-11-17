@@ -78,7 +78,8 @@ def generate_transactions(cards: dict, bank: int, wallet: int) -> list[dict]:
         add(month_day(mo, 10), "Airtel Xstream Fiber", -999, "Utilities")
         add(month_day(mo, 12), "Netflix.com", -649, "Subscriptions", card=hdfc)
         add(month_day(mo, 15), "BESCOM electricity bill", -rng.randint(1850, 2450), "Utilities")
-        add(month_day(mo, 18), "Spotify India", -119, "Subscriptions", card=axis)
+        # Spotify raised its price last month: the autopay detective should spot it.
+        add(month_day(mo, 18), "Spotify India", -119 if mo <= -2 else -139, "Subscriptions", card=axis)
         if mo < 0:
             add(month_day(mo, 17), "Bajaj Finserv personal loan EMI", -13190, "Loan EMI")
             add(month_day(mo, 20), "HDFC consumer durable EMI", -5761, "Loan EMI")
@@ -216,9 +217,10 @@ def main() -> None:
             conn.execute("insert into budgets (user_id, category_id, limit_amount, period) values (%s,%s,%s,'monthly')",
                          (uid, cats[cat], limit))
 
-        for name, target, saved, deadline in [("Emergency fund", 300000, 142000, date(TODAY.year + 1, 3, 31)),
-                                              ("Goa trip in December", 60000, 21500, date(TODAY.year, 12, 15)),
-                                              ("Parents' anniversary gift", 40000, 9000, date(TODAY.year + 1, 1, 20))]:
+        # Deadlines relative to today, so "goals on autopilot" stays realistic whenever the demo runs.
+        for name, target, saved, deadline in [("Emergency fund", 300000, 142000, TODAY + timedelta(days=420)),
+                                              ("Goa trip with friends", 45000, 30000, TODAY + timedelta(days=95)),
+                                              ("Parents' anniversary gift", 40000, 18000, TODAY + timedelta(days=125))]:
             conn.execute("insert into goals (user_id, name, target_amount, saved_amount, deadline) values (%s,%s,%s,%s,%s)",
                          (uid, name, target, saved, deadline))
 

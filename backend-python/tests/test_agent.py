@@ -77,3 +77,49 @@ def test_avalanche_beats_snowball_on_interest():
     s = simulate(debts, 5000, key=lambda d: d["balance"])
     assert a["order"][0] == "Card" and s["order"][0] == "Loan"
     assert a["total_interest"] < s["total_interest"]
+
+
+# ---- Voice / Hinglish ----------------------------------------------------------------
+
+from app.agent import speech  # noqa: E402
+from app.agent.parse import detect_lang, normalize  # noqa: E402
+from app.agent.tools import emi_options  # noqa: E402
+
+
+def test_hinglish_and_hindi_questions_route_like_english():
+    assert detect_intent("Kya main 20 hazaar ka phone le sakta hoon?") == "afford"
+    assert parse_amount("Kya main bees hazaar ka phone le sakta hoon?") == 20000
+    assert parse_amount("dedh lakh ki bike") == 150000
+    assert parse_amount("Can I afford a twenty thousand rupee phone?") == 20000
+    assert detect_intent("क्या मैं 20000 का फोन ले सकता हूं") == "afford"
+    assert detect_intent("pichle mahine khane pe kitna kharcha kiya") == "spend"
+    assert parse_period("pichle mahine khane pe kitna kharcha kiya", TODAY)[2] == "September 2026"
+    assert detect_intent("mera bill kab bharna hai") == "dues"
+    assert detect_intent("mahine ke end tak kitna bachega") == "forecast"
+    assert detect_intent("tax kaise bachaye") == "tax"
+    assert detect_intent("80C kya hai") == "knowledge"
+    assert "food" in normalize("khane pe kharcha")
+
+
+def test_language_detection():
+    assert detect_lang("Kya main 20 hazaar ka phone le sakta hoon?") == "hi"
+    assert detect_lang("क्या मैं फोन ले सकता हूं") == "hi"
+    assert detect_lang("Is my main account ok?") == "en"
+
+
+def test_emi_advisor_prefers_no_cost_plan_that_fits():
+    f = {"safe_headroom": 30000, "predicted_month_end": 30000, "disposable_now": 60000}
+    a = affordability(f, 150000)
+    assert not a["affordable"] and a["recommended_option"] == "nce_6"
+    six = next(o for o in a["options"] if o["id"] == "nce_6")
+    assert six["monthly"] == 25000 and six["total_interest"] == 0 and six["fits"]
+    card = next(o for o in emi_options(120000, 50000) if o["id"] == "emi_12")
+    assert 10800 < card["monthly"] < 10850 and card["total_interest"] > 0
+
+
+def test_spoken_reply_is_hinglish_and_grounded():
+    f = {"safe_headroom": 30000, "predicted_month_end": 30000, "disposable_now": 60000}
+    ev = [{"predicted_month_end": 30000, "affordability_check": affordability(f, 150000)}]
+    text = speech.build("afford", "hi", ev, "", TODAY)
+    assert text.startswith("Abhi nahi") and "6 mahine ki no-cost EMI" in text
+    assert check(text, ev)["ok"]

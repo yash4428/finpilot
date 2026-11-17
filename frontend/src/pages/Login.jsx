@@ -95,10 +95,10 @@ export default function Login() {
 
 function ArtStrip() {
   const segs = [
-    { w: 28, c: 'repeating-linear-gradient(135deg,#2B5257 0 6px,#27494E 6px 12px)', t: 'Card bills' },
-    { w: 13, c: 'repeating-linear-gradient(135deg,#2B5257 0 6px,#27494E 6px 12px)', t: 'EMIs' },
-    { w: 6, c: '#2F6166', t: '' },
-    { w: 20, c: '#3A7176', t: 'Usual spending' },
+    { w: 28, c: 'repeating-linear-gradient(135deg,#2E2E36 0 6px,#26262D 6px 12px)', t: 'Card bills' },
+    { w: 13, c: 'repeating-linear-gradient(135deg,#2E2E36 0 6px,#26262D 6px 12px)', t: 'EMIs' },
+    { w: 6, c: '#3A3A44', t: '' },
+    { w: 20, c: '#4C4C58', t: 'Usual spending' },
   ]
   return (
     <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--night-line)', borderRadius: 18, padding: 18 }}>
@@ -106,10 +106,10 @@ function ArtStrip() {
       <div style={{ display: 'flex', height: 40, borderRadius: 10, overflow: 'hidden', marginTop: 8, background: 'rgba(255,255,255,0.04)' }}>
         {segs.map((s, i) => (
           <motion.div key={i} initial={{ width: 0 }} animate={{ width: `${s.w}%` }} transition={{ delay: 0.3 + i * 0.15, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            style={{ background: s.c, borderRight: '2px solid var(--night)', fontSize: 10.5, color: 'rgba(255,255,255,.8)', display: 'flex', alignItems: 'flex-end', padding: '0 0 5px 7px', whiteSpace: 'nowrap', overflow: 'hidden' }}>{s.t}</motion.div>
+            style={{ background: s.c, borderRight: '2px solid #0B0B0E', fontSize: 10.5, color: 'rgba(255,255,255,.8)', display: 'flex', alignItems: 'flex-end', padding: '0 0 5px 7px', whiteSpace: 'nowrap', overflow: 'hidden' }}>{s.t}</motion.div>
         ))}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }}
-          style={{ flex: 1, background: 'linear-gradient(90deg,#E8962C,#F2A33A)', color: '#2A1A04', fontWeight: 600, fontSize: 11, display: 'flex', alignItems: 'flex-end', padding: '0 0 5px 8px' }}>Yours</motion.div>
+          style={{ flex: 1, background: 'linear-gradient(90deg,#B8893A,#F1D59A)', color: '#1E1503', fontWeight: 600, fontSize: 11, display: 'flex', alignItems: 'flex-end', padding: '0 0 5px 8px' }}>Yours</motion.div>
       </div>
     </div>
   )
