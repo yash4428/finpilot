@@ -1,0 +1,21 @@
+{
+  "voices": { "narrator": "Rishi", "user": "Aman", "pilot": "Tara" },
+  "rate": 182,
+  "scenes": [
+    { "id": "s01_login", "lines": [["narrator", "This is FinPilot, a personal finance app with an AI co-pilot. It brings your cards, loans, EMIs, spending, budgets and tax into one place, and tells you what money is actually yours to spend. Let's open the demo account."]] },
+    { "id": "s02_safe", "lines": [["narrator", "The home screen starts with our main feature: safe to spend. The bank balance is about one lakh, forty eight thousand rupees. But FinPilot subtracts every card bill and EMI due this month, so only ninety three thousand is really free. It also predicts the month end balance, using a machine learning model that learns your usual spending and spots recurring bills like rent and Netflix. The strip shows exactly where the money goes, and you can open the full breakdown."]] },
+    { "id": "s03_buy", "lines": [["narrator", "Thinking of buying something? Just type the price. Twenty thousand fits easily. Ninety thousand does not, so FinPilot suggests a smarter way to pay: a six month, no cost EMI."]] },
+    { "id": "s04_insights", "lines": [["narrator", "On the right is the FinPilot score, your financial health out of a hundred, with a tip on what to fix next. Scrolling down: spending this month versus last month, a calendar that shows which days you overspend, and the autopay detective. It finds every subscription, shows its yearly cost, and even catches price rises, like Spotify going up by twenty rupees."]] },
+    { "id": "s05_more", "lines": [["narrator", "Further down are upcoming bills, budgets, a simulated credit score, unusual activity, and your savings goals."]] },
+    { "id": "s06_txn", "lines": [["narrator", "In Transactions, every payment is categorised automatically, by a machine learning model that learns from your corrections. You can also import a bank statement as a CSV file. And an anomaly detector flags unusual charges, always with a reason, like a duplicate Swiggy order."]] },
+    { "id": "s07a_cards", "lines": [["narrator", "Cards and loans keeps every card, loan and bank account."]] },
+    { "id": "s07b_dues", "lines": [["narrator", "Dues puts every bill on one timeline, with reminders five days before."]] },
+    { "id": "s07c_goals", "lines": [["narrator", "Goals shows how much to save each month."]] },
+    { "id": "s07d_tax", "lines": [["narrator", "And Tax compares the old and new tax regimes, step by step."]] },
+    { "id": "s08a_ask", "lines": [["narrator", "Now the AI. Pilot is an AI agent built on Google Gemini. Let's ask it: can I afford a one lakh rupee laptop this month?"]] },
+    { "id": "s08b_answer", "lines": [["narrator", "Pilot doesn't guess. It calls tools that fetch your real data, does the maths in code, and only then writes the answer. Not this month, but it compares EMI options and stars the best one. Every figure is traced back to your data, and you can see exactly how Pilot worked it out."]] },
+    { "id": "s09a_voice", "lines": [["narrator", "And here is the wow moment. Press the mic, and just ask, in English, Hindi or Hinglish."], ["user", "Kya main dedh lakh ki bike le sakta hoon?"]] },
+    { "id": "s09b_react", "lines": [["pilot", "Abhi nahi. Bahattar hazaar, nau sau painsath rupaye kam pad rahe hain. Lekin chhe mahine ki no-cost EMI pe, pachees hazaar rupaye mahina, wo aaram se chal jayega."], ["narrator", "At the same time, the dashboard reacts. The bike is carved out of the safe to spend strip, and the shortfall turns red."]] },
+    { "id": "s10_close", "lines": [["narrator", "That's FinPilot. One dashboard, an honest number for what you can spend, and an AI co-pilot you can trust, because it never makes up a number."]] }
+  ]
+}

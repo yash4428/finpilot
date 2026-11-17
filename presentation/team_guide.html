@@ -1,0 +1,396 @@
+<title>FinPilot Team Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: one readable column; each feature is a card with Where / Show it / Say it rows. */
+:root {
+  --paper: #FBFAF7;
+  --surface: #FFFFFF;
+  --ink: #1D1A16;
+  --muted: #615A50;
+  --line: #E7E1D6;
+  --gold: #8A6417;
+  --gold-soft: #F5ECDA;
+  --good: #2F7A55;
+  --good-soft: #E6F3EC;
+  --warn: #A3531E;
+  --warn-soft: #FBEDE3;
+  --f-head: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #141311; --surface: #1C1A17; --ink: #F1EDE6; --muted: #B1A897; --line: #2E2A25;
+    --gold: #E2BF78; --gold-soft: #2E2616; --good: #6FD1A0; --good-soft: #15291F; --warn: #F0A374; --warn-soft: #2F1E14;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #141311; --surface: #1C1A17; --ink: #F1EDE6; --muted: #B1A897; --line: #2E2A25;
+  --gold: #E2BF78; --gold-soft: #2E2616; --good: #6FD1A0; --good-soft: #15291F; --warn: #F0A374; --warn-soft: #2F1E14;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+h1, h2, h3 { font-family: var(--f-head); line-height: 1.15; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(32px, 6vw, 44px); }
+h2 { font-size: 26px; margin-bottom: 14px; }
+h3 { font-size: 19px; }
+p { margin: 0 0 12px; }
+p:last-child { margin-bottom: 0; }
+a { color: var(--gold); }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.lead { font-size: 18px; color: var(--muted); margin-top: 12px; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px; }
+.toc a { text-decoration: none; font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); padding: 6px 12px; border-radius: 999px; }
+.toc a:hover, .toc a:focus-visible { border-color: var(--gold); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.callout { background: var(--gold-soft); border-radius: 14px; padding: 18px 20px; }
+.callout.good { background: var(--good-soft); }
+.callout.warn { background: var(--warn-soft); }
+.callout strong { display: block; margin-bottom: 4px; }
+ul, ol { margin: 0 0 12px; padding-left: 22px; }
+li { margin: 4px 0; }
+.feature { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; }
+.feature .what { color: var(--muted); }
+.rows { display: grid; grid-template-columns: 92px 1fr; gap: 8px 14px; font-size: 15px; }
+.rows dt { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); padding-top: 3px; }
+.rows dd { margin: 0; min-width: 0; }
+.say { font-style: italic; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.flow div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14px; }
+.flow b { display: block; font-size: 15px; }
+.qa dt { font-weight: 600; margin-top: 14px; }
+.qa dd { margin: 4px 0 0; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+code { font-size: 14px; background: var(--gold-soft); padding: 1px 6px; border-radius: 6px; }
+.big-quote { font-family: var(--f-head); font-size: 22px; line-height: 1.3; }
+@media (max-width: 520px) {
+  .rows { grid-template-columns: 1fr; gap: 2px; }
+  .rows dd { margin-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">For the team · read before the presentation</div>
+  <h1>FinPilot: everything you need to present it</h1>
+  <p class="lead">You haven't seen this project before, and that's fine. This page explains the whole thing in plain words: what it is, how it works, every feature, where to click, what to say, and what the teacher might ask.</p>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <a href="#idea">The idea</a><a href="#built">How it's built</a><a href="#features">Features</a>
+  <a href="#wow">Wow moment</a><a href="#demo">Running the demo</a><a href="#words">Tech words</a>
+  <a href="#questions">Teacher questions</a><a href="#limits">What's not done</a><a href="#plan">Presenting plan</a>
+</nav>
+
+<section id="idea">
+  <h2>1. The idea in one minute</h2>
+  <p><strong>FinPilot is a personal-finance app with an AI assistant.</strong> It puts your credit cards, loans, EMIs, spending, budgets, savings goals and tax in one place. Its main promise: it tells you how much money is <em>actually yours to spend</em>.</p>
+  <p><strong>The problem it solves.</strong> Think of a salaried person in India with two credit cards, a personal loan, a laptop EMI and a few UPI apps. Their bank app shows ₹1,48,520, so they feel rich. But a big part of that money is already promised to card bills and EMIs due this month. So they overspend, miss due dates, pay late fees and interest, and don't notice subscriptions going up. And if they ask an AI chatbot "can I afford this?", it answers confidently with numbers it made up.</p>
+  <div class="callout">
+    <strong>FinPilot does three things:</strong>
+    <ol style="margin:6px 0 0">
+      <li><strong>One dashboard</strong> for all your money.</li>
+      <li><strong>Safe-to-spend:</strong> your real spendable money, not just your balance.</li>
+      <li><strong>Pilot, the AI assistant:</strong> ask questions in English, Hinglish or Hindi, by typing or by voice. It answers from your real data and is <strong>never allowed to make up a number</strong>.</li>
+    </ol>
+  </div>
+  <p style="margin-top:12px">If you remember one line, remember this: <em>"FinPilot tells you what's actually yours to spend, and its AI never makes up a number."</em></p>
+</section>
+
+<section id="built">
+  <h2>2. How it's built, in simple words</h2>
+  <p>Think of it like a restaurant. The customer only talks to the waiter. The waiter talks to the kitchen. The kitchen has a manager who keeps all the records, and a specialist who does the clever work.</p>
+  <div class="flow">
+    <div><b>React website</b>What you see and click. The "waiter".</div>
+    <div><b>Java Spring Boot</b>The main backend. Login, all the money rules, reminders. The "manager".</div>
+    <div><b>PostgreSQL</b>The database where all the data is saved. The "record book".</div>
+    <div><b>Python FastAPI</b>The second backend. Machine-learning models and the AI assistant. The "specialist".</div>
+    <div><b>Google Gemini</b>The AI language model that writes Pilot's answers.</div>
+  </div>
+  <p style="margin-top:14px">The course required <strong>two backends</strong>, which is why there's both Java and Python. The website only ever talks to Java. Java asks Python whenever it needs machine learning or AI.</p>
+  <div class="callout good">
+    <strong>The most important design choice</strong>
+    When Pilot needs a number (your balance, your bills), it does not guess. It calls a "tool" that fetches the real number from the Java backend, using that user's own login. Then our code checks every number in the answer against that data. If the AI invents a number, the answer is thrown away and rewritten.
+  </div>
+</section>
+
+<section id="features" class="stack">
+  <h2>3. The features, one by one</h2>
+  <p>For each feature: what it is, where to find it in the app, how to show it, and one line to say.</p>
+
+  <article class="feature">
+    <h3>Safe-to-spend (the headline feature)</h3>
+    <p class="what">Instead of one bank balance, FinPilot shows two numbers. <strong>Safe to spend now</strong> is your balance minus every card bill and EMI due this month. <strong>Predicted on the 30th</strong> also subtracts recurring bills (rent, Netflix, electricity) and your usual daily spending. A machine-learning model predicts the daily spending from your history.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Overview page, the big dark card at the top.</dd>
+      <dt>Show it</dt><dd>Point at the strip: each bill peels away from the balance, and the gold part at the end is "yours to keep". Click <em>See the full breakdown</em> to show the line-by-line math.</dd>
+      <dt>Say it</dt><dd class="say">"Your bank balance isn't your spending money. FinPilot subtracts what's already committed and shows what's really yours."</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>"Thinking of buying something?" and the EMI advisor</h3>
+    <p class="what">Type a price and FinPilot instantly says if it fits: green (fine), gold (tight) or red (too much). If it doesn't fit, it suggests a smarter way to pay, like a 6-month no-cost EMI.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Inside the same dark card on Overview.</dd>
+      <dt>Show it</dt><dd>Type <code>20000</code> (fits), then <code>90000</code> (red, with a "Smarter: … EMI" line). Or drag the slider.</dd>
+      <dt>Say it</dt><dd class="say">"Before you buy, it tells you if you can afford it, and if not, a better way to pay."</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>Spend today (daily allowance)</h3>
+    <p class="what">How much you can spend today and still save 10% of your income this month.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Top-right corner of the safe-to-spend card.</dd>
+      <dt>Say it</dt><dd class="say">"A daily budget that protects your savings automatically."</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>FinPilot score (financial health out of 100)</h3>
+    <p class="what">One score made of four parts, 25 points each: savings rate, debt load (how much income goes to EMIs), safety net (how many months of spending your savings cover) and discipline (card usage, overdue bills, budgets). It also says what to fix next.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Overview, top-right card with the green ring.</dd>
+      <dt>Say it</dt><dd class="say">"Like a fitness score, but for your money, with a tip on what to improve."</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>Spending calendar and charts</h3>
+    <p class="what">A heatmap of the last 13 weeks (brighter = more spending), a weekday bar chart ("you spend most on Sundays"), this month vs last month, and a donut of where the money went.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Overview, scroll down.</dd>
+      <dt>Show it</dt><dd>Hover over days on the calendar and segments of the donut.</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>Autopay detective</h3>
+    <p class="what">FinPilot automatically finds repeating payments (subscriptions and bills), shows what they cost per year, and catches price rises. In the demo, Spotify went up by ₹20 and it's flagged.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Overview, the "Autopay detective" card next to the calendar.</dd>
+      <dt>Say it</dt><dd class="say">"It finds subscriptions you forgot about and warns you when prices go up."</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>Transactions: auto-categorising, CSV import, unusual charges</h3>
+    <p class="what">Every transaction gets a category automatically (Dining, Groceries, Rent…). It uses simple rules plus a machine-learning model, and it learns when you correct a category. You can upload a bank statement as a CSV file. A second machine-learning model flags unusual charges and always explains why ("looks like a duplicate", "40× your usual shopping").</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Transactions page (left menu).</dd>
+      <dt>Show it</dt><dd>Click the <strong>Flagged</strong> chip to see the unusual charges with reasons. Change a category from its dropdown. Click <strong>Import CSV</strong> → <em>Download a sample statement</em> → import it. It shows "11 imported, 11 categorised, 1 flagged".</dd>
+      <dt>Say it</dt><dd class="say">"It sorts your spending by itself and flags anything suspicious, like a duplicate Swiggy order."</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>Cards, loans and bank accounts</h3>
+    <p class="what">All your credit cards (with how much of the limit is used), loans with how many EMIs are left, and bank accounts with balances. When you add a loan, the monthly EMI is calculated for you.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Cards &amp; loans page.</dd>
+      <dt>Show it</dt><dd>Click <strong>Add card</strong> and set the due date 3 days from today. Then open the Dues page and the bell icon: the new bill and a reminder appear.</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>Dues and reminders</h3>
+    <p class="what">Every card bill and EMI on one timeline. A scheduled job runs every morning at 8 AM, marks bills as "due soon" or "overdue", and sends reminders 5 days before. Marking an EMI paid schedules next month's automatically.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Dues page, plus the bell icon (top-right) for alerts.</dd>
+      <dt>Show it</dt><dd>Click <strong>Mark paid</strong> on an EMI. It moves to "Recently paid" and next month's EMI appears.</dd>
+      <dt>Say it</dt><dd class="say">"You never miss a due date again."</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>Budgets</h3>
+    <p class="what">A monthly limit per category. Each bar has a small marker showing where you <em>should</em> be at this point in the month, so you notice overspending early. Alerts fire at 80% and 100%.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Budgets page (and a summary on Overview).</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>Goals on autopilot</h3>
+    <p class="what">Savings goals (emergency fund, a trip). FinPilot works out how much to save each month to reach each goal and checks it against what you have left every month. "Add money" moves money from the bank into the goal.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Goals page.</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>Tax</h3>
+    <p class="what">Compares the old and new tax regimes using the real rules (tax slabs, standard deduction, the 87A rebate, 4% cess) and shows every step. Sliders for 80C, health insurance (80D), NPS and HRA change the tax live. Also shows ways to save and a return-filing checklist. It's an estimate, and it says so.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Tax page.</dd>
+      <dt>Show it</dt><dd>Drag the 80C slider: the old regime's tax drops, but the new regime still wins for the demo user.</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>Credit health</h3>
+    <p class="what">A <strong>simulated</strong> credit score (300–900, like CIBIL) based on card usage and on-time payments, with tips. It's clearly labelled as simulated; we don't connect to a real credit bureau.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>Overview, "Credit health" card.</dd>
+    </dl>
+  </article>
+
+  <article class="feature">
+    <h3>Pilot, the AI assistant (chat)</h3>
+    <p class="what">Ask anything about your money in plain language. Pilot works in steps: understand the question → plan which tools to use → fetch real data → calculate in code → write the answer → check every number. For advice questions ("What is 80C?") it searches 8 trusted documents about tax and finance and cites the source as [1] [2]. That search technique is called RAG.</p>
+    <dl class="rows">
+      <dt>Where</dt><dd>"Ask Pilot" in the left menu, or press ⌘K anywhere.</dd>
+      <dt>Show it</dt><dd>Ask <em>"Can I afford a ₹1,00,000 laptop this month?"</em> You get a verdict card and an EMI comparison table. Point at the green line "<strong>N figures traced to your data</strong>", then click <strong>How Pilot worked this out</strong> to show every step.<br>Also try <em>"What is 80C?"</em> (look for the [1] [2] citations) and <em>"Which debt should I pay off first?"</em></dd>
+      <dt>Say it</dt><dd class="say">"It's an AI agent, not just a chatbot. It looks up your real data and our code checks every number before you see it."</dd>
+    </dl>
+  </article>
+</section>
+
+<section id="wow">
+  <h2>4. The wow moment: talk to Pilot in Hinglish</h2>
+  <p>Press the <strong>gold mic button</strong> (bottom-right of every page) and just speak, in English, Hinglish or Hindi.</p>
+  <div class="callout">
+    <p class="big-quote">"Kya main dedh lakh ki bike le sakta hoon?"</p>
+    <p>Pilot answers <strong>out loud</strong>, something like: "Abhi nahi. ₹72,965 kam pad rahe hain. Lekin 6 mahine ki no-cost EMI pe ₹25,000 mahina, wo aaram se chal jayega." At the same moment the dashboard reacts: the safe-to-spend strip carves out the bike's price and the shortfall turns red.</p>
+  </div>
+  <p style="margin-top:12px">Other things to say into the mic:</p>
+  <ul>
+    <li><em>"Mera bill kab bharna hai?"</em> → the "Coming up" bills section glows.</li>
+    <li><em>"Pichle mahine khane pe kitna kharcha kiya?"</em> → the spending chart glows.</li>
+    <li><em>"Tax kaise bachaye?"</em> → it jumps to the Tax page.</li>
+  </ul>
+  <div class="callout warn">
+    <strong>If the mic doesn't work in the room</strong>
+    The voice screen has ready-made question buttons and an "Or type here" box. Tapping one gives exactly the same answer, spoken reply and dashboard reaction. Voice works in Chrome, needs internet, and the browser asks for mic permission the first time.
+  </div>
+</section>
+
+<section id="demo">
+  <h2>5. Running the live demo</h2>
+  <p>The project runs on the project owner's laptop. If you're showing it live:</p>
+  <ol>
+    <li>Make sure the database is running: <code>brew services start postgresql@16</code></li>
+    <li>Open Terminal in the project folder and run <code>./run.sh --seed</code> (it loads fresh demo data and prints the link).</li>
+    <li>Open the printed link in <strong>Chrome</strong>. It's usually <code>http://localhost:5175</code>, not 5173, because another project uses 5173.</li>
+    <li>Click <strong>Explore the demo account</strong> (email <code>demo@finpilot.app</code>, password <code>demo1234</code>).</li>
+  </ol>
+  <div class="callout warn">
+    <strong>About the AI key</strong>
+    Pilot uses Google Gemini when an API key is set in the project's <code>.env</code> file. Without a key, or when Google's servers are busy, Pilot automatically switches to its <strong>offline mode</strong>: same tools, same real numbers, simpler wording. Nothing breaks, so the demo works either way. In "How Pilot worked this out", offline mode shows as "Deterministic planner".
+  </div>
+  <p style="margin-top:12px"><strong>No laptop with the project?</strong> Just present the slides. Every slide has a real screenshot, and the script for each slide is in the speaker notes.</p>
+</section>
+
+<section id="words">
+  <h2>6. Tech words, explained simply</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Word</th><th>What it means here</th></tr></thead>
+      <tbody>
+        <tr><td>React</td><td>The JavaScript library the website is built with.</td></tr>
+        <tr><td>Spring Boot</td><td>A Java framework for building the backend server.</td></tr>
+        <tr><td>JWT</td><td>A login token. After you sign in, every request carries it, so the server knows who you are and only shows your data.</td></tr>
+        <tr><td>PostgreSQL</td><td>The database where everything is stored.</td></tr>
+        <tr><td>FastAPI</td><td>A Python framework for the second backend (machine learning + AI).</td></tr>
+        <tr><td>Scheduler (@Scheduled)</td><td>A function that runs automatically every morning at 8 AM to update bill statuses and send reminders.</td></tr>
+        <tr><td>Logistic Regression + TF-IDF</td><td>The machine-learning model that reads a merchant name (like "Blinkit") and guesses the category (Groceries).</td></tr>
+        <tr><td>Linear Regression</td><td>The model that predicts your usual daily spending for the rest of the month.</td></tr>
+        <tr><td>Isolation Forest</td><td>The model that finds unusual transactions (outliers) that don't look like your normal spending.</td></tr>
+        <tr><td>LLM (Gemini)</td><td>Google's AI language model. We use it as-is to understand questions and write answers.</td></tr>
+        <tr><td>Tool calling</td><td>The AI asks our code for data ("get my dues") instead of guessing. Pilot has 7 tools.</td></tr>
+        <tr><td>RAG</td><td>Retrieval-augmented generation: before answering an advice question, Pilot searches our trusted documents and answers only from them, with citations.</td></tr>
+        <tr><td>FAISS</td><td>A fast search index (a vector database) that stores our documents for RAG.</td></tr>
+        <tr><td>Grounding check</td><td>Our code checks that every number in Pilot's answer came from real data. If not, the answer is rejected.</td></tr>
+        <tr><td>Docker Compose</td><td>A way to start the whole system (database, both backends, website) with one command.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="questions">
+  <h2>7. Questions the teacher might ask</h2>
+  <dl class="qa">
+    <dt>Why two backends?</dt>
+    <dd>The course required it. It also keeps things clean: Java is the system of record (accounts, rules, data), Python does the machine learning and AI. The website only talks to Java.</dd>
+    <dt>How do you stop the AI from making up numbers?</dt>
+    <dd>Three ways. The AI must get numbers from tools that read the real database. Calculations like "can I afford it" are done in our code, not by the AI. And after the AI writes an answer, our code checks every number against the real data; if one doesn't match, the answer is rejected and rewritten.</dd>
+    <dt>Did you train or fine-tune the AI?</dt>
+    <dd>No. We use Google Gemini as-is. We only use RAG (searching our documents) and tool calling. Training, fine-tuning and RAG are three different things, and we only do RAG.</dd>
+    <dt>Which machine-learning models did you use?</dt>
+    <dd>Logistic Regression with TF-IDF for categorising transactions, Linear Regression for forecasting spending, and Isolation Forest for spotting unusual charges. All from scikit-learn.</dd>
+    <dt>Why not connect to real bank accounts?</dt>
+    <dd>In India that needs an RBI Account Aggregator licence, which a student project can't get. CSV bank-statement import is the legitimate alternative, and it's what real users can do.</dd>
+    <dt>Is the credit score real?</dt>
+    <dd>No, it's simulated from card usage and payment history, and the app labels it "Simulated".</dd>
+    <dt>What about privacy?</dt>
+    <dd>We only store the last 4 digits of cards. Before anything goes to the AI, emails, card numbers, account numbers, PAN and Aadhaar numbers are masked. Every request is tied to the logged-in user, so nobody sees anyone else's data.</dd>
+    <dt>Is it tested?</dt>
+    <dd>Yes, 30 automated tests across Java and Python (tax math, EMI formula, ML models, the AI loop, Hinglish understanding and more).</dd>
+    <dt>How does it understand Hinglish?</dt>
+    <dd>Our code converts Hinglish and Hindi phrases ("le sakta hoon", "bees hazaar", "pichle mahine") into simple English meanings before deciding what you're asking. The spoken reply is built from the real numbers.</dd>
+    <dt>What happens if the AI service is down?</dt>
+    <dd>Pilot retries, tries a backup Gemini model, and then falls back to a rule-based mode that uses the same tools and real numbers. The user always gets a correct answer.</dd>
+  </dl>
+</section>
+
+<section id="limits">
+  <h2>8. What's not done (say this honestly if asked)</h2>
+  <ul>
+    <li><strong>No real bank linking.</strong> CSV import instead (RBI licence needed).</li>
+    <li><strong>Credit score is simulated</strong>, not from a bureau.</li>
+    <li><strong>The Docker setup is written but wasn't tested</strong>; the app was run with the <code>run.sh</code> script instead.</li>
+    <li><strong>Document search uses a simple word-matching method</strong> (TF-IDF) to turn text into vectors, not a neural embedding model.</li>
+    <li><strong>Tax covers salaried people under 60</strong> (no capital gains or surcharge).</li>
+    <li><strong>Reminders are in-app only</strong>, not SMS or email yet.</li>
+  </ul>
+  <p>Future plans (last slide): bank linking through Account Aggregator, a mobile app, SMS/email reminders, shared family budgets, more Indian languages.</p>
+</section>
+
+<section id="plan">
+  <h2>9. Presenting plan</h2>
+  <p>The deck has 12 slides, about 9 minutes. The full script for each slide is in the speaker notes (and in <code>FinPilot_slide_script.md</code>). Just read it naturally.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Slide</th><th>Main point</th></tr></thead>
+      <tbody>
+        <tr><td>1 · Title</td><td>FinPilot: know what's actually yours to spend.</td></tr>
+        <tr><td>2 · Problem</td><td>Your bank balance isn't your spending money.</td></tr>
+        <tr><td>3 · Solution</td><td>One dashboard, safe-to-spend, Pilot the AI assistant.</td></tr>
+        <tr><td>4 · How it's built</td><td>React → Java → database; Python for ML and AI; tools call back for real numbers.</td></tr>
+        <tr><td>5 · Safe-to-spend</td><td>Two numbers, daily allowance, "can I buy this?" check.</td></tr>
+        <tr><td>6 · Smart transactions</td><td>Auto-categorising, CSV import, unusual charges, autopay detective.</td></tr>
+        <tr><td>7 · Stay on track</td><td>Dues and reminders, budgets, goals on autopilot.</td></tr>
+        <tr><td>8 · Tax &amp; health</td><td>Old vs new regime, FinPilot score.</td></tr>
+        <tr><td>9 · Pilot</td><td>An AI agent that can't make numbers up.</td></tr>
+        <tr><td>10 · Wow moment</td><td>Ask in Hinglish, and the dashboard reacts. Do this live if you can.</td></tr>
+        <tr><td>11 · Trust</td><td>Privacy, security, 30 tests, honest scope.</td></tr>
+        <tr><td>12 · Next + thanks</td><td>Future plans, then questions or live demo.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout good" style="margin-top:14px">
+    <strong>Tip for the live demo</strong>
+    Keep it to three moves: (1) type 90000 in "Thinking of buying something?", (2) ask Pilot "Can I afford a ₹1,00,000 laptop?" and open "How Pilot worked this out", (3) press the mic and say "Kya main dedh lakh ki bike le sakta hoon?".
+  </div>
+</section>
+
+</div>

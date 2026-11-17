@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FinPilot Team Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+<style>
+  @page { size: A4; margin: 14mm 15mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Inter", Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1D1A16; margin: 0; }
+  h1 { font-size: 20pt; margin: 0 0 2px; }
+  .sub { color: #615A50; margin: 0 0 10px; }
+  h2 { font-size: 12.5pt; margin: 14px 0 5px; color: #7A5A14; break-after: avoid; }
+  p { margin: 0 0 6px; }
+  ul, ol { margin: 0 0 6px; padding-left: 18px; }
+  li { margin: 2px 0; }
+  .box { background: #F6EFE0; border-radius: 6px; padding: 8px 11px; margin: 6px 0; break-inside: avoid; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  th, td { text-align: left; vertical-align: top; padding: 5px 7px; border-bottom: 1px solid #E5DDCD; }
+  th { background: #F6EFE0; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em; }
+  tr { break-inside: avoid; }
+  td:first-child { font-weight: 600; width: 22%; }
+  code { font-size: 9pt; background: #F1EADB; padding: 0 4px; border-radius: 3px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+  .q b { display: block; }
+  .q { break-inside: avoid; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<h1>FinPilot: team guide</h1>
+<p class="sub">Everything you need to present the project, in simple words.</p>
+
+<h2>1. The idea</h2>
+<p><b>FinPilot is a personal-finance app with an AI assistant.</b> It puts credit cards, loans, EMIs, spending, budgets, savings goals and tax in one place, and tells you how much money is <b>actually yours to spend</b>.</p>
+<p><b>Problem:</b> your bank balance looks big, but much of it is already promised to card bills and EMIs. People overspend, miss due dates and pay late fees. AI chatbots answer money questions with made-up numbers.</p>
+<div class="box"><b>One line to remember:</b> "FinPilot tells you what's actually yours to spend, and its AI never makes up a number."</div>
+
+<h2>2. How it's built</h2>
+<ul>
+  <li><b>React website:</b> what you see. It only talks to the Java backend.</li>
+  <li><b>Java Spring Boot backend:</b> login, all money rules, daily 8 AM reminder job. Data is saved in <b>PostgreSQL</b>.</li>
+  <li><b>Python FastAPI backend:</b> machine-learning models and the AI assistant. (Two backends were a course requirement.)</li>
+  <li><b>Google Gemini:</b> the AI model that writes Pilot's answers. We use it as-is (no training).</li>
+  <li><b>Key idea:</b> the AI never guesses numbers. It calls "tools" that fetch real data, and our code checks every number in the answer.</li>
+</ul>
+
+<h2>3. Features and where to show them</h2>
+<table>
+  <tr><th>Feature</th><th>What it does</th><th>Where / how to show</th></tr>
+  <tr><td>Safe-to-spend</td><td>Two numbers: money free now (balance minus bills and EMIs due), and predicted month-end balance (an ML model forecasts usual spending).</td><td>Overview, top dark card. Click "See the full breakdown".</td></tr>
+  <tr><td>"Can I buy this?"</td><td>Type a price: green, gold (tight) or red. Suggests a no-cost EMI if it doesn't fit.</td><td>Same card. Type 90000.</td></tr>
+  <tr><td>Spend today</td><td>Daily allowance that still saves 10% of income.</td><td>Top-right of the same card.</td></tr>
+  <tr><td>FinPilot score</td><td>Financial health out of 100: savings, debt, safety net, discipline. Says what to fix.</td><td>Overview, green ring.</td></tr>
+  <tr><td>Calendar &amp; charts</td><td>Spending heatmap, weekday chart, this vs last month, category donut.</td><td>Overview, scroll down. Hover.</td></tr>
+  <tr><td>Autopay detective</td><td>Finds subscriptions and bills, yearly cost, price rises (Spotify +₹20).</td><td>Overview, next to calendar.</td></tr>
+  <tr><td>Transactions</td><td>Auto-categories (learns from corrections), CSV bank-statement import, unusual charges flagged with a reason.</td><td>Transactions: click "Flagged". Import CSV → sample file.</td></tr>
+  <tr><td>Cards &amp; loans</td><td>Cards with limit used, loans with EMIs left, bank accounts. EMI auto-calculated.</td><td>Cards &amp; loans. Add a card due in 3 days.</td></tr>
+  <tr><td>Dues &amp; reminders</td><td>All bills on one timeline; reminders 5 days before; next EMI scheduled when paid.</td><td>Dues page and bell icon. Click "Mark paid".</td></tr>
+  <tr><td>Budgets</td><td>Limit per category; marker shows where you should be today; alerts at 80% and 100%.</td><td>Budgets page.</td></tr>
+  <tr><td>Goals</td><td>Says how much to save per month for each goal; "Add money".</td><td>Goals page.</td></tr>
+  <tr><td>Tax</td><td>Old vs new regime with step-by-step math; sliders for 80C, 80D, NPS, HRA. Estimate only.</td><td>Tax page. Drag the 80C slider.</td></tr>
+  <tr><td>Credit health</td><td>Simulated 300–900 score (not a real bureau) with tips.</td><td>Overview card.</td></tr>
+  <tr><td>Pilot (AI chat)</td><td>Answers money questions from real data; cites sources for advice; checks every number.</td><td>"Ask Pilot" or ⌘K. Ask "Can I afford a ₹1,00,000 laptop?", then open "How Pilot worked this out".</td></tr>
+</table>
+
+<h2>4. The wow moment: voice in Hinglish</h2>
+<p>Press the <b>gold mic</b> (bottom-right) and say: <b>"Kya main dedh lakh ki bike le sakta hoon?"</b> Pilot answers out loud ("Abhi nahi… 6 mahine ki no-cost EMI pe ₹25,000 mahina, wo chal jayega") and the dashboard strip turns red to show the shortfall.</p>
+<p>Also try: "Mera bill kab bharna hai?" (bills glow) · "Tax kaise bachaye?" (opens Tax).</p>
+<div class="box"><b>Mic not working?</b> Tap one of the ready-made question buttons or use "Or type here". Same result. Voice needs Chrome, internet and mic permission.</div>
+
+<h2>5. Running the demo</h2>
+<ol>
+  <li><code>brew services start postgresql@16</code></li>
+  <li>In the project folder: <code>./run.sh --seed</code> (prints the link).</li>
+  <li>Open the link in Chrome (usually <code>localhost:5175</code>) → "Explore the demo account" (<code>demo@finpilot.app</code> / <code>demo1234</code>).</li>
+</ol>
+<p>No Gemini key, or Google busy? Pilot switches to <b>offline mode</b> automatically: same real numbers, simpler wording. Nothing breaks. No laptop? Present the slides; the script is in the speaker notes.</p>
+<div class="box"><b>Quick live demo (3 moves):</b> type 90000 in "Thinking of buying something?" → ask Pilot about the ₹1,00,000 laptop → say the bike question into the mic.</div>
+
+<h2>6. Likely teacher questions</h2>
+<div class="two">
+  <div class="q"><b>Why two backends?</b>Course requirement. Java keeps the records and rules; Python does ML and AI.</div>
+  <div class="q"><b>How does the AI not make up numbers?</b>It must fetch numbers through tools, maths is done in code, and every number in the answer is checked. Wrong ones get the answer rejected.</div>
+  <div class="q"><b>Did you train the AI?</b>No. Gemini is used as-is. We only use RAG (searching our 8 trusted documents, with citations) and tool calling.</div>
+  <div class="q"><b>Which ML models?</b>Logistic Regression + TF-IDF (categories), Linear Regression (spending forecast), Isolation Forest (unusual charges).</div>
+  <div class="q"><b>Why no real bank connection?</b>Needs an RBI Account Aggregator licence. CSV import is the legal alternative.</div>
+  <div class="q"><b>Privacy?</b>Only card last-4 stored. Emails, card, account, PAN, Aadhaar numbers are masked before reaching the AI. Each user sees only their own data (JWT login).</div>
+  <div class="q"><b>How does it understand Hinglish?</b>Our code converts phrases like "le sakta hoon" and "bees hazaar" into simple English meanings first.</div>
+  <div class="q"><b>Is it tested?</b>Yes, 30 automated tests across Java and Python.</div>
+</div>
+
+<h2>7. Not done yet (say honestly if asked)</h2>
+<ul>
+  <li>No real bank linking (CSV instead). Credit score is simulated.</li>
+  <li>Docker setup written but not tested; we run it with <code>run.sh</code>.</li>
+  <li>Document search uses simple word matching (TF-IDF), not a neural embedding model.</li>
+  <li>Reminders are in-app only (no SMS/email). Tax covers salaried people under 60.</li>
+</ul>
+
+</body>
+</html>

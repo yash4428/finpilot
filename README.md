@@ -14,6 +14,37 @@ Python FastAPI :8000  →  Gemini API (optional)   categorizer, forecaster, anom
    └── agent tools call back into the Java API with the user's own JWT
 ```
 
+## New here? Start with these
+
+- **`presentation/FinPilot_Demo.mp4`** — 3-minute narrated walkthrough of the whole app
+- **`presentation/FinPilot_Team_Guide.pdf`** — the project explained in simple words (features, demo steps, likely questions)
+- **`presentation/FinPilot_Presentation.pptx`** — the 12-slide deck (script in the speaker notes and in `FinPilot_slide_script.md`)
+
+## Quick start on a Mac (5 steps)
+
+You need: PostgreSQL 16, Java 17+, Maven, Python 3.11+, Node 20+ and Chrome.
+
+```bash
+brew install postgresql@16 openjdk@21 maven python@3.12 node && brew services start postgresql@16
+```
+
+```bash
+echo 'export PATH="/opt/homebrew/opt/openjdk@21/bin:/opt/homebrew/opt/postgresql@16/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
+```
+
+```bash
+createdb finpilot && psql -d finpilot -c "create role finpilot login password 'finpilot'; alter database finpilot owner to finpilot;"
+```
+
+1. Copy the settings file: `cp .env.example .env`
+2. **Add your own Gemini API key** in `.env` → `GEMINI_API_KEY=...` (free key: https://aistudio.google.com/apikey).
+   No key? Everything still works — Pilot uses its offline mode with the same real numbers.
+3. Start everything with demo data: `./run.sh --seed` (first run installs packages and builds; takes a few minutes)
+4. Open the link it prints (usually http://localhost:5173) in Chrome
+5. Click **Explore the demo account**
+
+Never commit `.env` — it holds your key and is already in `.gitignore`.
+
 ## Run everything (Docker)
 
 ```bash
